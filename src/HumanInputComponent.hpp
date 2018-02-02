@@ -1,24 +1,24 @@
 //
-//  PlayerInputComponent.hpp
+//  HumanInputComponent.hpp
 //  Helico-opter
 //
 //  Created by Alex Saalberg on 1/28/18.
 //
 
-#ifndef PlayerInputComponent_hpp
-#define PlayerInputComponent_hpp
+#ifndef HumanInputComponent_hpp
+#define HumanInputComponent_hpp
 
 #include <stdio.h>
 
 #include "Component.hpp"
 #include "glm/glm.hpp"
 
-class PlayerInputComponent : public InputComponent
+class HumanInputComponent : public InputComponent
 {
 public:
     //Variables
-    bool movingForward = false;
-    bool movingBackward = false;
+    bool humanUp = false;
+    bool humanDown = false;
     bool jumping = false;
     
     //Functions

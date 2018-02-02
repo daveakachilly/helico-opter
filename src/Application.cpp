@@ -17,26 +17,57 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
-    else if (key == GLFW_KEY_A && (action == GLFW_PRESS))
-    {
-        playerInputComponent->movingForward = true;
-    }
-    else if (key == GLFW_KEY_D && (action == GLFW_PRESS))
-    {
-        playerInputComponent->movingBackward = true;
-    }
-    else if (key == GLFW_KEY_A && (action == GLFW_RELEASE))
-    {
-        playerInputComponent->movingForward = false;
-    }
-    else if (key == GLFW_KEY_D && (action == GLFW_RELEASE))
-    {
-        playerInputComponent->movingBackward = false;
-    }
     else if (key == GLFW_KEY_W && (action == GLFW_PRESS))
     {
-        playerInputComponent->jumping = true;
+        helicopterInputComponent->helicopterUp = true;
+		if (humanInputComponent->humanDown == false) {
+			humanInputComponent->humanUp = true;
+		}
+		helicopter->up = true;
     }
+    else if (key == GLFW_KEY_S && (action == GLFW_PRESS))
+    {
+		helicopterInputComponent->helicopterDown = true;
+		if (humanInputComponent->humanUp == false) {
+			humanInputComponent->humanDown = true;
+		}
+		helicopter->down = true;
+    }
+    else if (key == GLFW_KEY_W && (action == GLFW_RELEASE))
+    {
+		helicopterInputComponent->helicopterUp = false;
+		humanInputComponent->humanUp = false;
+		helicopter->up = false;
+    }
+    else if (key == GLFW_KEY_S && (action == GLFW_RELEASE))
+    {
+		helicopterInputComponent->helicopterDown = false;
+		humanInputComponent->humanDown = false;
+		helicopter->down = false;
+    }
+	else if (key == GLFW_KEY_UP && (action == GLFW_PRESS))
+	{
+		humanInputComponent->humanUp = true;
+		human->up = true;
+	}
+	else if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS))
+	{
+		humanInputComponent->humanDown = true;
+		human->down = true;
+	}
+	else if (key == GLFW_KEY_UP && (action == GLFW_RELEASE)) {
+		humanInputComponent->humanUp = false;
+		human->up = false;
+	}
+	else if (key == GLFW_KEY_DOWN && (action == GLFW_RELEASE))
+	{
+		humanInputComponent->humanDown = false;
+		human->down = false;
+	}
+    /*else if (key == GLFW_KEY_X && (action == GLFW_PRESS))
+    {
+        playerInputComponent->jumping = true;
+    }*/
 }
 
 void Application::scrollCallback(GLFWwindow* window, double deltaX, double deltaY)
@@ -63,7 +94,8 @@ void Application::init(const std::string& resourceDirectory) {
     initShaders(resourceDirectory+"/shaders");
     initTextures(resourceDirectory+"/models");
     initGeom(resourceDirectory+"/models");
-    initPlayer(sphereModel);
+    initHeli(heliModel);
+	initHuman(humanModel);
     initCamera();
     initQuad();
 }
@@ -150,30 +182,61 @@ void Application::initGeom(const std::string& resourceDirectory) {
     {
         cerr << errStr << endl;
     } else {
-        sphereModel = make_shared<Model>();
-        sphereModel->createModel(TOshapes, objMaterials);
+        heliModel = make_shared<Model>();
+        heliModel->createModel(TOshapes, objMaterials);
     }
+
+	bool rc2 = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
+		(resourceDirectory + "/sphere.obj").c_str());
+	if (!rc2)
+	{
+		cerr << errStr << endl;
+	}
+	else {
+		humanModel = make_shared<Model>();
+		humanModel->createModel(TOshapes, objMaterials);
+	}
 }
 
-void Application::initPlayer(shared_ptr<Model> model) {
-    shared_ptr<PlayerInputComponent> input = make_shared<PlayerInputComponent> ();
+void Application::initHeli(shared_ptr<Model> model) {
+    shared_ptr<HelicopterInputComponent> input = make_shared<HelicopterInputComponent> ();
     inputComponents.push_back(input);
     
-    shared_ptr<DefaultPhysicsComponent> physics = make_shared<DefaultPhysicsComponent> ();
+    shared_ptr<HeliPhysicsComponent> physics = make_shared<HeliPhysicsComponent> ();
     physicsComponents.push_back(physics);
     
     shared_ptr<DefaultGraphicsComponent> graphics = make_shared<DefaultGraphicsComponent> ();
     graphicsComponents.push_back(graphics);
     graphics->models.push_back(model);
     
-    playerInputComponent = input;
-    player = make_shared<GameObject>(input, physics, graphics);
-    currentState.gameObjects.push_back(player);
+    helicopterInputComponent = input;
+    helicopter = make_shared<GameObject>(input, physics, graphics);
+	helicopter->heli = true;
+	helicopter->gameObj = helicopter;
+    currentState.gameObjects.push_back(helicopter);
+}
+
+void Application::initHuman(shared_ptr<Model> model) {
+	shared_ptr<HumanInputComponent> input = make_shared<HumanInputComponent>();
+	inputComponents.push_back(input);
+
+	shared_ptr<HumanPhysicsComponent> physics = make_shared<HumanPhysicsComponent>();
+	physicsComponents.push_back(physics);
+
+	shared_ptr<DefaultGraphicsComponent> graphics = make_shared<DefaultGraphicsComponent>();
+	graphicsComponents.push_back(graphics);
+	graphics->models.push_back(model);
+
+	humanInputComponent = input;
+	human = make_shared<GameObject>(input, physics, graphics);
+	human->human = true;
+	human->gameObj = helicopter;
+	currentState.gameObjects.push_back(human);
 }
 
 void Application::initCamera() {
     camera = make_shared<Camera>();
-    camera->player = player;
+    camera->player = helicopter;
 }
 
 /**** geometry set up for ground plane *****/
@@ -242,7 +305,7 @@ void Application::initQuad()
 
 void Application::renderGround()
 {
-    glEnableVertexAttribArray(0);
+    /*glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, GroundBufferObject);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     
@@ -260,7 +323,7 @@ void Application::renderGround()
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(2);*/
 }
 
 void Application::integrate(float t, float dt) {

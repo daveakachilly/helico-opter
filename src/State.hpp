@@ -15,7 +15,7 @@
 class State {
 public:
     std::vector<std::shared_ptr<GameObject>> gameObjects;
-    
+
     static State interpolate(State &previous, State &current, float alpha);
     //float acceleration(const State &state, float t);
     void integrate(float t, double dt);

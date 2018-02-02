@@ -26,9 +26,11 @@
 
 //Components
 #include "Component.hpp"
-#include "DefaultPhysicsComponent.hpp"
+#include "HeliPhysicsComponent.hpp"
+#include "HumanPhysicsComponent.hpp"
 #include "DefaultGraphicsComponent.hpp"
-#include "PlayerInputComponent.hpp"
+#include "HelicopterInputComponent.hpp"
+#include "HumanInputComponent.hpp"
 
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
@@ -57,11 +59,13 @@ public:
     State previousState = currentState;
     
     std::shared_ptr<Camera> camera;
-    std::shared_ptr<GameObject> player;
+    std::shared_ptr<GameObject> helicopter;
+	std::shared_ptr<GameObject> human;
     
     std::shared_ptr<Model> temporaryModel;
-    std::shared_ptr<Model> sphereModel;
-    
+    std::shared_ptr<Model> heliModel;
+	std::shared_ptr<Model> humanModel;
+
     std::vector<std::shared_ptr<Model>> models;
     //std::vector<std::shared_ptr<Actor>> actors;
     
@@ -69,7 +73,8 @@ public:
     std::vector< std::shared_ptr<PhysicsComponent> > physicsComponents;
     std::vector< std::shared_ptr<GraphicsComponent> > graphicsComponents;
     
-    std::shared_ptr<PlayerInputComponent> playerInputComponent;
+    std::shared_ptr<HelicopterInputComponent> helicopterInputComponent;
+	std::shared_ptr<HumanInputComponent> humanInputComponent;
     
     std::shared_ptr<Texture> heightmapTexture;
     std::shared_ptr<Texture> grassTexture;
@@ -107,7 +112,8 @@ public:
     void initTextures(const std::string& resourceDirectory);
     void initGeom(const std::string& resourceDirectory);
     
-    void initPlayer(std::shared_ptr<Model> model);
+    void initHeli(std::shared_ptr<Model> model);
+	void initHuman(std::shared_ptr<Model> model);
     void initCamera();
     
     /**** geometry set up for ground plane *****/

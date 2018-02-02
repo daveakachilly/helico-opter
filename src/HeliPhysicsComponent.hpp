@@ -5,19 +5,19 @@
 //  Created by Alex Saalberg on 1/28/18.
 //
 
-#ifndef DefaultPhysicsComponent_hpp
-#define DefaultPhysicsComponent_hpp
+#ifndef HeliPhysicsComponent_hpp
+#define HeliPhysicsComponent_hpp
 
 #include <stdio.h>
 
 #include "Component.hpp"
 #include "glm/glm.hpp"
 
-class DefaultPhysicsComponent : public PhysicsComponent
+class HeliPhysicsComponent : public PhysicsComponent
 {
 public:
-    virtual void update(GameObject& gameObject, float dt);
-    void integrate(GameObject& gameObject, float dt);
+    virtual void update(GameObject& gameObject1, GameObject& gameObject2, float dt);
+    void integrate(GameObject& gameObject1, GameObject& gameObject2, float dt);
     
     float calculateGroundHeight();
     

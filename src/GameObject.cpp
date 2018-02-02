@@ -38,10 +38,10 @@ GameObject::GameObject(std::shared_ptr<InputComponent> inputComponent, std::shar
     this->graphics = graphicsComponent;
 }
 
-void GameObject::simulate(float dt)
+void GameObject::simulate(GameObject& gameObject, float dt)
 {
     input->update(*this);
-    physics->update(*this, dt);
+    physics->update(*this, gameObject, dt);
 }
 
 void GameObject::render(std::shared_ptr<Program> prog) {

@@ -36,6 +36,12 @@ State State::interpolate(State &previous, State &current, float alpha)
 void State::integrate(float t, double dt)
 {
     for(auto &gameObject : gameObjects) {
-        gameObject->simulate(dt);
+		if (gameObject->heli == true) {
+			gameObject->simulate(*gameObject->gameObj, dt);
+		}
+		else if (gameObject->human == true) {
+			gameObject->simulate(*gameObject->gameObj, dt);
+		}
     }
+
 }

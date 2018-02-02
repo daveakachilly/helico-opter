@@ -33,7 +33,7 @@ void Camera::setHelicopterViewMatrix(const std::shared_ptr<Program> prog) const 
     V->pushMatrix();
     V->loadIdentity();
         V->lookAt(vec3(0, 0, 0), cameraIdentityVector, vec3(0, 1, 0));
-        V->translate((-1.0f * player->position)); //Negative
+        V->translate(-1.0f * vec3(0.0f)); //Negative
         V->translate(vec3(0.0f, 0.0f, -cameraDistance));
         CHECKED_GL_CALL( glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix())) );
     V->popMatrix();
@@ -49,7 +49,7 @@ void Camera::setViewMatrix(const std::shared_ptr<Program> prog) const {
     V->pushMatrix();
     V->loadIdentity();
     V->lookAt(vec3(0.0f, 0.0f, 0.0f), cameraIdentityVector, vec3(0.0f, 1.0f, 0.0f));
-    V->translate(-1.0f * player->position); //Negative
+    V->translate(-1.0f * vec3(0.0f)); //Negative
     CHECKED_GL_CALL( glUniformMatrix4fv(
                                         prog->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix())) );
     V->popMatrix();
@@ -66,5 +66,5 @@ void Camera::setProjectionMatrix(const std::shared_ptr<Program> prog, float aspe
 }
 
 void Camera::setEyePosition(const std::shared_ptr<Program> prog) const {
-    CHECKED_GL_CALL( glUniform3f(prog->getUniform("eyePosition"), player->position.x + cameraDistance, player->position.y, player->position.z) );
+    CHECKED_GL_CALL( glUniform3f(prog->getUniform("eyePosition"), cameraDistance, 0, 0) );
 }
