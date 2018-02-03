@@ -20,6 +20,7 @@ public:
     bool humanUp = false;
     bool humanDown = false;
     bool jumping = false;
+	int count = 0;
     
     //Functions
     virtual void update(GameObject& gameObject);
