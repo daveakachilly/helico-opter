@@ -65,7 +65,8 @@ public:
     
 //Variables
     bool gameOver = false;
-    int playerHealth = 3;
+    int copterHealth = 3;
+	int manHealth = 3;
     
     double w = 0; //w is for sin wave frequency.
     
@@ -134,6 +135,7 @@ public:
     
     void initPlayer(std::shared_ptr<Model> model);
     void initCamera();
+	void initGUI();
     
     /**** geometry set up for ground plane *****/
     void initQuad();
@@ -161,7 +163,8 @@ public:
     void testCollisions();
     bool isCollision(std::shared_ptr<GameObject> player, std::shared_ptr<GameObject> bird);
     void setCollisionCooldown(std::shared_ptr<GameObject> gameObject);
-    void decrementPlayerHealth();
+    void changeCopterHealth(int i);
+	void changeManHealth(int i);
     void gameLost();
 };
 

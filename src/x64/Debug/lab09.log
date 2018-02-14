@@ -1,0 +1,5 @@
+﻿  main.cpp
+  Shape.cpp
+  MatrixStack.cpp
+  Generating Code...
+LINK : fatal error LNK1104: cannot open file 'glfw3.lib'
