@@ -475,7 +475,7 @@ void Application::initGUI()
 		temporaryGameObjectPointer->position = vec3(0 + (i * 100), 0, 0);
 		temporaryGameObjectPointer->velocity = vec3(0, 0, 0);
 		temporaryGameObjectPointer->radius = 0;
-		currentState.gameObjects.push_back(temporaryGameObjectPointer);
+		currentState->gameObjects.push_back(temporaryGameObjectPointer);
 	}
 }
 
@@ -525,7 +525,7 @@ void Application::testCollisions() {
                 setCollisionCooldown(player);
                 setCollisionCooldown(gameObject);
                 
-                changeCopterHealth();
+                changeCopterHealth(-1);
             }
         }
     }
