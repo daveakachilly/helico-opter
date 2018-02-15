@@ -454,6 +454,29 @@ void Application::createBird(shared_ptr<Model> model, vec3 position) {
     currentState->gameObjects.push_back(temporaryGameObjectPointer);
 }
 
+void Application::initGUI()
+{
+	shared_ptr<DefaultInputComponent> input = make_shared<DefaultInputComponent>();
+	inputComponents.push_back(input);
+
+	shared_ptr<BirdPhysicsComponent> physics = make_shared<BirdPhysicsComponent>();
+	physicsComponents.push_back(physics);
+
+	shared_ptr<DefaultGraphicsComponent> graphics = make_shared<DefaultGraphicsComponent>();
+	graphicsComponents.push_back(graphics);
+	graphics->models.push_back(helicopterModel); //Give this graphics component model
+	graphics->material = 1;
+	//Todo: Give constructor to graphics for models.
+
+	for (int i = 0; i < 3; i++) {
+		temporaryGameObjectPointer = make_shared<GameObject>(input, physics, graphics);
+		temporaryGameObjectPointer->position = vec3(0 + (i * 100), 0, 0);
+		temporaryGameObjectPointer->velocity = vec3(0, 0, 0);
+		temporaryGameObjectPointer->radius = 0;
+		currentState.gameObjects.push_back(temporaryGameObjectPointer);
+	}
+}
+
 void Application::initBirds() {
     /*
      //birds
@@ -500,7 +523,7 @@ void Application::testCollisions() {
                 setCollisionCooldown(player);
                 setCollisionCooldown(gameObject);
                 
-                decrementPlayerHealth();
+                changeCopterHealth();
             }
         }
     }
@@ -516,21 +539,42 @@ void Application::setCollisionCooldown(shared_ptr<GameObject> gameObject) {
     gameObject->collisionCooldown = 3.0f; //3 seconds
 }
 
-void Application::decrementPlayerHealth() {
-    playerHealth -= 1;
-    
-    switch(playerHealth) {
-        case 2:
-            player->graphics->material = 0;
-            break;
-        case 1:
-            player->graphics->material = 6;
-            break;
-        case 0:
-            player->graphics->material = 5;
-            gameLost();
-            break;
-    }
+void Application::changeCopterHealth(int i) {
+	copterHealth += i;
+
+	switch (copterHealth) {
+	case 2:
+		currentState.gameObjects.at(3)->enabled = false;
+		player->graphics->material = 0;
+		currentState.gameObjects.at(0) = 0;
+		break;
+	case 1:
+		currentState.gameObjects.at(2)->enabled = false;
+		player->graphics->material = 6;
+		break;
+	case 0:
+		currentState.gameObjects.at(3)->enabled = false;
+		player->graphics->material = 5;
+		gameLost();
+		break;
+	}
+}
+
+void Application::changeManHealth(int i) {
+	manHealth += i;
+
+	switch (manHealth) {
+	case 2:
+		player->graphics->material = 0;
+		break;
+	case 1:
+		player->graphics->material = 6;
+		break;
+	case 0:
+		player->graphics->material = 5;
+		gameLost();
+		break;
+	}
 }
 
 void Application:: gameLost() {

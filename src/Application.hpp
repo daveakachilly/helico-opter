@@ -70,6 +70,8 @@ public:
     double w = 0; //w is for sin wave frequency.
     
     bool mouseDown = false;
+	int copterHealth = 3;
+	int manHealth = 3;
     WindowManager * windowManager = nullptr;
     
     // Our shader program
@@ -126,6 +128,7 @@ public:
     void initMainProgram(const std::string& resourceDirectory);
     void initGroundProgram(const std::string& resourceDirectory);
     void initTextures(const std::string& resourceDirectory);
+	void initGUI();
 
     
     void initWaterTextures(const std::string& resourceDirectory);
@@ -162,7 +165,8 @@ public:
     void testCollisions();
     bool isCollision(std::shared_ptr<GameObject> player, std::shared_ptr<GameObject> bird);
     void setCollisionCooldown(std::shared_ptr<GameObject> gameObject);
-    void decrementPlayerHealth();
+    void changeCopterHealth(int i);
+	void changeManHealth(int i);
     void gameLost();
 };
 
