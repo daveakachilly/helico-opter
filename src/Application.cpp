@@ -349,8 +349,10 @@ void Application::renderState(State& state) {
         CHECKED_GL_CALL( glUniform3f(mainProgram->getUniform("directionTowardsLight"), directionTowardsLight.x, directionTowardsLight.y, directionTowardsLight.z) );
     
         for(auto& gameObject : state.gameObjects) {
-            SetMaterial(mainProgram, gameObject->graphics->material);
-            gameObject->render(mainProgram);
+			if (gameObject->enabled) {
+				SetMaterial(mainProgram, gameObject->graphics->material);
+				gameObject->render(mainProgram);
+			}
         }
     
     mainProgram->unbind();
@@ -544,16 +546,15 @@ void Application::changeCopterHealth(int i) {
 
 	switch (copterHealth) {
 	case 2:
-		currentState.gameObjects.at(3)->enabled = false;
+		currentState->gameObjects.at(3)->enabled = false;
 		player->graphics->material = 0;
-		currentState.gameObjects.at(0) = 0;
 		break;
 	case 1:
-		currentState.gameObjects.at(2)->enabled = false;
+		currentState->gameObjects.at(2)->enabled = false;
 		player->graphics->material = 6;
 		break;
 	case 0:
-		currentState.gameObjects.at(3)->enabled = false;
+		currentState->gameObjects.at(3)->enabled = false;
 		player->graphics->material = 5;
 		gameLost();
 		break;

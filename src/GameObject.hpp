@@ -37,7 +37,8 @@ public:
     float scale = 1.0f;
     float radius = 1.0f;
     float mass = 1.0f; //1 gram?
-    float collisionCooldown = 0.0f;
+	float collisionCooldown = 0.0f;
+	bool enabled = true;
     
     //Functions
     static std::shared_ptr<GameObject> interpolate(std::shared_ptr<GameObject> previous, std::shared_ptr<GameObject> current, float alpha);
