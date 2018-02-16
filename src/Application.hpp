@@ -132,7 +132,8 @@ public:
     void initMainProgram(const std::string& resourceDirectory);
     void initGroundProgram(const std::string& resourceDirectory);
     void initTextures(const std::string& resourceDirectory);
-	void initGUI();
+     void initGUI();
+	void initAudio();
 
     
     void initWaterTextures(const std::string& resourceDirectory);

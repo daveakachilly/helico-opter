@@ -176,8 +176,8 @@ void Application::initTextures(const std::string& resourceDirectory) {
 
 void Application::initAudio() {
   audio = make_shared<AudioEngine>();
-  audio.openAudio();
-  audio.loopSong();
+  audio->openAudio();
+  audio->loopSong();
 }
 
 void Application::initGeom(const std::string& resourceDirectory) {
@@ -557,7 +557,7 @@ void Application::testCollisions() {
             if( isCollision(player, gameObject) ) {
                 setCollisionCooldown(player);
                 setCollisionCooldown(gameObject);
-                audio.playSound();
+                audio->playSound();
                 changeCopterHealth(-1);
             }
         }
