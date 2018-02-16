@@ -21,6 +21,7 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     {
 		printf("%s", "im being clicked\n");
         helicopterInputComponent->helicopterUp = true;
+		printf("%d", helicopterInputComponent->helicopterUp);
 		if (humanInputComponent->humanDown == false) {
 			//humanInputComponent->humanUp = true;
 		}
@@ -48,6 +49,7 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     }
 	else if (key == GLFW_KEY_UP && (action == GLFW_PRESS))
 	{
+		printf("Human up\n");
 		humanInputComponent->humanUp = true;
 		human->up = true;
 	}
@@ -181,8 +183,8 @@ void Application::initGeom(const std::string& resourceDirectory) {
     {
         cerr << errStr << endl;
     } else {
-		sphereModel = make_shared<Model>();
-		sphereModel->createModel(TOshapes, objMaterials);
+		humanModel = make_shared<Model>();
+		humanModel->createModel(TOshapes, objMaterials);
     }
 
     //load in the mesh and make the shapes
@@ -209,7 +211,7 @@ void Application::initGeom(const std::string& resourceDirectory) {
         helicopterModel->scale *= 2.0f;
     }
 
-	bool rc2 = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
+	/*bool rc2 = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
 		(resourceDirectory + "/sphere.obj").c_str());
 	if (!rc2)
 	{
@@ -218,7 +220,7 @@ void Application::initGeom(const std::string& resourceDirectory) {
 	else {
 		humanModel = make_shared<Model>();
 		humanModel->createModel(TOshapes, objMaterials);
-	}
+	}*/
 }
 
 void Application::initHeli(shared_ptr<Model> model) {
@@ -366,8 +368,8 @@ void Application::render(float t, float alpha) {
     if(previousState->gameObjects.size() > 0)
         previous = previousState->gameObjects.at(0).get()->position;
     vec3 current = currentState->gameObjects.at(0).get()->position;
-    
-    /*printf("Ren %f %f %f\n", rendered.x, rendered.y, rendered.z);
+    /*
+    printf("Ren %f %f %f\n", rendered.x, rendered.y, rendered.z);
     printf("Cur %f %f %f\n", current.x, current.y, current.z);
     printf("Prv %f %f %f\n", previous.x, current.y, current.z);*/
     
@@ -546,7 +548,7 @@ void Application::testCollisions() {
     
     for(auto &gameObject : currentState->gameObjects) {
         if(gameObject != helicopter && helicopter->collisionCooldown <= 0.0f && gameObject->collisionCooldown <= 0.0f) {
-            if( isCollision(helicopter, gameObject) ) {
+            if( isCollision(helicopter, gameObject) && gameObject->human == false) {
                 setCollisionCooldown(helicopter);
                 setCollisionCooldown(gameObject);
                 

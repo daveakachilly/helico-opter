@@ -9,11 +9,11 @@
 
 void HumanInputComponent::update(GameObject& gameObject) {
     if (humanUp) {
-        gameObject.impulse += gameObject.forwardDirection * 0.15f;
+        gameObject.impulse += gameObject.forwardDirection * 10.0f;
 		if (gameObject.impulse.y > 0.f)
 			gameObject.impulse.y = 0.f;
     } else if (humanDown) {
-        gameObject.impulse += gameObject.forwardDirection * -0.15f;
+        gameObject.impulse += gameObject.forwardDirection * -10.0f;
 		if (gameObject.impulse.y < -10.f)
 			gameObject.impulse.y = -10.f;
     }

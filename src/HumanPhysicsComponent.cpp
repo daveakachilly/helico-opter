@@ -18,16 +18,16 @@ void HumanPhysicsComponent::integrate(GameObject& human, GameObject& heli, float
     
 	float xH = heli.position.x;
 	float yH = heli.position.y;
-
+	printf("Human impulse: %f\n", human.impulse.y);
 	human.position.x = xH;
 	human.position.y = yH + human.impulse.y;
-	if (human.position.y < yH - 10.0f) {
+	if (human.position.y < yH - 8.0f) {
 		human.velocity.y = 0.0f;
-		human.position.y = yH - 10.0f;
+		human.position.y = yH - 8.0f;
 	}
-	else if (human.position.y > heli.position.y - 2.0f) {
+	else if (human.position.y > yH - 0.5f) {
 		human.velocity.y = 0.0f;
-		human.position.y = yH- 2.0f;
+		human.position.y = yH - 0.5f;
 	}
 
 	

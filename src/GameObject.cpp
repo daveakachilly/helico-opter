@@ -53,6 +53,7 @@ void GameObject::simulate(GameObject& gameObject, float dt)
     } else if (collisionCooldown < 0.0f) {
         collisionCooldown = 0.0f;
     }
+
     input->update(*this);
     physics->update(*this, gameObject, dt);
 }

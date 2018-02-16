@@ -73,5 +73,5 @@ void Camera::setProjectionMatrix(const std::shared_ptr<Program> prog, float aspe
 }
 
 void Camera::setEyePosition(const std::shared_ptr<Program> prog) const {
-    CHECKED_GL_CALL( glUniform3f(prog->getUniform("eyePosition"), cameraDistance, 0, 0) );
+    CHECKED_GL_CALL( glUniform3f(prog->getUniform("eyePosition"), cameraDistance, player->position.y, player->position.z) );
 }
