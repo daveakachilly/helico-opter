@@ -1,30 +1,25 @@
 //
-//  PlayerPhysicsComponent.hpp
+//  AudioEngine.hpp
 //  Helico-opter
 //
-//  Created by Alex Saalberg on 2/1/18.
+//  Created by David McIntyre on 2/1/18.
 //
 
-#ifndef PlayerPhysicsComponent_hpp
-#define PlayerPhysicsComponent_hpp
+#ifndef AudioEngine_hpp
+#define AudioEngine_hpp
 
 #include <stdio.h>
 
-#include "Component.hpp"
-#include "glm/glm.hpp"
+#include "fmod.hpp"
 
-class PlayerPhysicsComponent : public PhysicsComponent
-{
-    const float maxHorizontalSpeed = 20.0f;
-    
-public:
-    virtual void update(GameObject& gameObject, float dt);
-    void integrate(GameObject& gameObject, float dt);
-    
-    float calculateGroundHeight();
-    
-    glm::vec3 calculateAcceleration(GameObject& gameObject, float dt);
+class AudioEngine 
+{   
+public :
+    void openAudio();
+    void playSound();
+    void loopSong()l
+    void closeAudio();
 };
 
 
-#endif /* PlayerPhysicsComponent_hpp */
+#endif /* AudioEngine_hpp */

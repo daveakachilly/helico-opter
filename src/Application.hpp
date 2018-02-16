@@ -36,6 +36,8 @@
 
 #include "BirdPhysicsComponent.hpp"
 
+#include "AudioEngine.hpp"
+
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -70,9 +72,10 @@ public:
     double w = 0; //w is for sin wave frequency.
     
     bool mouseDown = false;
-	int copterHealth = 3;
-	int manHealth = 3;
+    int copterHealth = 3;
+    int manHealth = 3;
     WindowManager * windowManager = nullptr;
+    std::shared_ptr<AudioEngine> audio;
     
     // Our shader program
     std::shared_ptr<Program> mainProgram;
@@ -98,7 +101,8 @@ public:
     std::vector< std::shared_ptr<PhysicsComponent> > physicsComponents;
     std::vector< std::shared_ptr<GraphicsComponent> > graphicsComponents;
     
-    std::shared_ptr<PlayerInputComponent> playerInputComponent;
+  std::shared_ptr<PlayerInputComponent> playerInputComponent [3];
+
     
     std::shared_ptr<Texture> heightmapTexture;
     std::shared_ptr<Texture> grassTexture;
@@ -148,7 +152,10 @@ public:
     void integrate(float t, float dt);
     void render(float t,  float alpha);
     void renderState(State& state);
-    
+    void moveUpward(bool b);
+    void moveDownward(bool b);
+    void moveForward(bool b);
+    void moveBackward(bool b);
     void simulate(float dt);
     
     // helper function to set materials for shading

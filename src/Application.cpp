@@ -19,37 +19,62 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     }
     else if (key == GLFW_KEY_A && (action == GLFW_PRESS))
     {
-        playerInputComponent->movingForward = true;
+      moveForward(true);
     }
     else if (key == GLFW_KEY_D && (action == GLFW_PRESS))
     {
-        playerInputComponent->movingBackward = true;
+      moveBackward(true);
     }
     else if (key == GLFW_KEY_A && (action == GLFW_RELEASE))
     {
-        playerInputComponent->movingForward = false;
+      moveForward(false);
     }
     else if (key == GLFW_KEY_D && (action == GLFW_RELEASE))
     {
-        playerInputComponent->movingBackward = false;
+      moveBackward(false);
     }
     else if (key == GLFW_KEY_W && (action == GLFW_PRESS))
     {
-        playerInputComponent->movingUpward = true;
+      moveUpward(true);
     }
     else if (key == GLFW_KEY_S && (action == GLFW_PRESS))
     {
-        playerInputComponent->movingDownward = true;
+      moveDownward(true);
     }
     else if (key == GLFW_KEY_W && (action == GLFW_RELEASE))
     {
-        playerInputComponent->movingUpward = false;
+      moveUpward(false);
     }
     else if (key == GLFW_KEY_S && (action == GLFW_RELEASE))
     {
-        playerInputComponent->movingDownward = false;
+      moveDownward(false);
     }
 }
+
+void Application::moveUpward(bool b) {
+  for(int i = 0; i < 4; i ++) {
+    playerInputComponent[i]->movingUpward = b;
+  }
+}
+
+void Application::moveDownward(bool b) {
+  for(int i = 0; i < 4; i ++) {
+    playerInputComponent[i]->movingDownward = b;
+  }
+}
+
+void Application::moveForward(bool b) {
+  for(int i = 0; i < 4; i ++) {
+    playerInputComponent[i]->movingForward = b;
+  }
+}
+
+void Application::moveBackward(bool b) {
+  for(int i = 0; i < 4; i ++) {
+    playerInputComponent[i]->movingBackward = b;
+  }
+}
+
 
 //Todo: Remove these (Idk if they're being optimized out, but hopefully
 //                    they're not being called every time the mouse moves)
@@ -73,6 +98,7 @@ void Application::init(const std::string& resourceDirectory) {
     initTextures(resourceDirectory+"/models");
     initGeom(resourceDirectory+"/models");
     initPlayer(helicopterModel);
+    initGUI();
     initCamera();
     initBirds();
     initQuad();
@@ -148,6 +174,12 @@ void Application::initTextures(const std::string& resourceDirectory) {
     //grassTexture->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 }
 
+void Application::initAudio() {
+  audio = make_shared<AudioEngine>();
+  audio.openAudio();
+  audio.loopSong();
+}
+
 void Application::initGeom(const std::string& resourceDirectory) {
     // this is the tiny obj shapes - not to be confused with our shapes
     vector<tinyobj::shape_t> TOshapes;
@@ -201,7 +233,7 @@ void Application::initPlayer(shared_ptr<Model> model) {
     graphicsComponents.push_back(graphics);
     graphics->models.push_back(model);
     
-    playerInputComponent = input;
+    playerInputComponent[0] = input;
     player = make_shared<GameObject>(input, physics, graphics);
     
     currentState->gameObjects.push_back(player);
@@ -458,10 +490,10 @@ void Application::createBird(shared_ptr<Model> model, vec3 position) {
 
 void Application::initGUI()
 {
-	shared_ptr<DefaultInputComponent> input = make_shared<DefaultInputComponent>();
+	shared_ptr<PlayerInputComponent> input = make_shared<PlayerInputComponent>();
 	inputComponents.push_back(input);
 
-	shared_ptr<BirdPhysicsComponent> physics = make_shared<BirdPhysicsComponent>();
+	shared_ptr<PlayerPhysicsComponent> physics = make_shared<PlayerPhysicsComponent>();
 	physicsComponents.push_back(physics);
 
 	shared_ptr<DefaultGraphicsComponent> graphics = make_shared<DefaultGraphicsComponent>();
@@ -472,9 +504,10 @@ void Application::initGUI()
 
 	for (int i = 0; i < 3; i++) {
 		temporaryGameObjectPointer = make_shared<GameObject>(input, physics, graphics);
-		temporaryGameObjectPointer->position = vec3(0 + (i * 100), 0, 0);
+		temporaryGameObjectPointer->position = vec3(0 + (i * 10), -10, 0);
 		temporaryGameObjectPointer->velocity = vec3(0, 0, 0);
 		temporaryGameObjectPointer->radius = 0;
+		playerInputComponent[i+1] = input;
 		currentState->gameObjects.push_back(temporaryGameObjectPointer);
 	}
 }
@@ -524,7 +557,7 @@ void Application::testCollisions() {
             if( isCollision(player, gameObject) ) {
                 setCollisionCooldown(player);
                 setCollisionCooldown(gameObject);
-                
+                audio.playSound();
                 changeCopterHealth(-1);
             }
         }

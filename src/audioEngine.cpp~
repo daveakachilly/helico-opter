@@ -1,0 +1,36 @@
+#include "fmod.hpp"
+
+FMOD::System     *system;
+FMOD::Sound      *sound1;
+FMOD::Channel    *channel = 0;
+FMOD_RESULT       result;
+unsigned int      version;
+void             *extradriverdata = 0;
+
+void openAudio() {
+	result = FMOD::System_Create(&system);
+    ERRCHECK(result);
+
+    result = system->getVersion(&version);
+    ERRCHECK(result);
+
+    result = system->init(32, FMOD_INIT_NORMAL, extradriverdata);
+    ERRCHECK(result);
+
+    result = system->createSound("/Audio/chaching.wav", FMOD_DEFAULT, 0, &sound1);
+    ERRCHECK(result);
+}
+
+void playSound() {
+	result = system->playSound(sound1, 0, false, &channel);
+    ERRCHECK(result);
+}
+
+void closeAudio() {
+	result = sound1->release();
+    ERRCHECK(result);=
+    result = system->close();
+    ERRCHECK(result);
+    result = system->release();
+    ERRCHECK(result);
+}
