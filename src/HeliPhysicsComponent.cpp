@@ -28,7 +28,7 @@ void HeliPhysicsComponent::integrate(GameObject& heli, GameObject& human, float 
 	printf("position: %f", heli.position.y);
 	//printf("%f", heli.velocity);
     float groundHeight = calculateGroundHeight();
-	float skyHeight = 12.0f;
+	float skyHeight = 7.0f;
 	//heli.notMoving = false;
     if(heli.position.y < groundHeight ) {
 		printf("%s\n", "too low");
@@ -47,12 +47,12 @@ void HeliPhysicsComponent::integrate(GameObject& heli, GameObject& human, float 
 }
 
 float HeliPhysicsComponent::calculateGroundHeight() {
-    return -12.0f;
+    return -7.0f;
 }
 
 vec3 HeliPhysicsComponent::calculateAcceleration(GameObject& gameObject, float dt) {
     vec3 acceleration = vec3(0.0f); // meters per second per second
-    acceleration.y = -1.0f;
+    acceleration.y = -0.5f;
     
     float frictionMultiplier = 0.95f;
     acceleration.x = -1.0f * frictionMultiplier * gameObject.velocity.x;
