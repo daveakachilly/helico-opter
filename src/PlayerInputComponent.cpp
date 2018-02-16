@@ -12,9 +12,9 @@ using namespace glm;
 void PlayerInputComponent::update(GameObject& gameObject) {
     /*
     if (movingForward) {
-        gameObject.impulse += gameObject.forwardDirection * -1.0f;
+        gameObject.impulse += gameObject.forwardDirection * 1.0f;
     } else if (movingBackward) {
-        gameObject.impulse += gameObject.forwardDirection * +1.0f;
+        gameObject.impulse += gameObject.forwardDirection * -1.0f;
     }
     if (jumping) {
         gameObject.impulse.y += 2.0f;

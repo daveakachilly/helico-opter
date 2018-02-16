@@ -16,7 +16,7 @@
 class BirdPhysicsComponent : public PhysicsComponent
 {
 public:
-    virtual void update(GameObject& gameObject, float dt);
+    virtual void update(GameObject& gameObject1, GameObject& gameObject2, float dt);
     void integrate(GameObject& gameObject, float dt);
     
     float calculateGroundHeight();

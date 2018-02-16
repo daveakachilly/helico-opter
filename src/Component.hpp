@@ -28,7 +28,8 @@ class PhysicsComponent
 {
 public:
     virtual ~PhysicsComponent() {}
-    virtual void update(GameObject& gameObject, float dt) = 0;
+    //virtual void update(GameObject& gameObject, float dt) = 0;
+	virtual void update(GameObject& gameObject1, GameObject& gameObject2, float dt) = 0;
 };
 
 class GraphicsComponent

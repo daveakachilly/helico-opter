@@ -43,7 +43,7 @@ GameObject::GameObject(std::shared_ptr<InputComponent> inputComponent, std::shar
     this->graphics = graphicsComponent;
 }
 
-void GameObject::simulate(float dt)
+void GameObject::simulate(GameObject& gameObject, float dt)
 {
     velocity.z = 0.0f; //don't want them moving zed
     position.z = 0.0f; //don't want them not being 0
@@ -54,7 +54,7 @@ void GameObject::simulate(float dt)
         collisionCooldown = 0.0f;
     }
     input->update(*this);
-    physics->update(*this, dt);
+    physics->update(*this, gameObject, dt);
 }
 
 void GameObject::render(std::shared_ptr<Program> prog) {

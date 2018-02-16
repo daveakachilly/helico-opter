@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{3527F4DF-2CB7-400D-88BE-417EBBBD4F74}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -68,22 +69,48 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\ext\glad\src\glad.c" />
+    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DefaultGraphicsComponent.cpp" />
+    <ClCompile Include="DefaultPhysicsComponent.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GLSL.cpp" />
     <ClCompile Include="GLTextureWriter.cpp" />
+    <ClCompile Include="HelicopterInputComponent.cpp" />
+    <ClCompile Include="HeliPhysicsComponent.cpp" />
+    <ClCompile Include="HumanInputComponent.cpp" />
+    <ClCompile Include="HumanPhysicsComponent.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MatrixStack.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="PlayerInputComponent.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Shape.cpp" />
+    <ClCompile Include="State.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="tiny_obj_loader.cpp" />
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Application.hpp" />
+    <ClInclude Include="Camera.hpp" />
+    <ClInclude Include="Component.hpp" />
+    <ClInclude Include="DDS_Loader.hpp" />
+    <ClInclude Include="DefaultGraphicsComponent.hpp" />
+    <ClInclude Include="DefaultPhysicsComponent.hpp" />
+    <ClInclude Include="GameObject.hpp" />
     <ClInclude Include="GLSL.h" />
     <ClInclude Include="GLTextureWriter.h" />
+    <ClInclude Include="HelicopterInputComponent.hpp" />
+    <ClInclude Include="HeliPhysicsComponent.hpp" />
+    <ClInclude Include="HumanInputComponent.hpp" />
+    <ClInclude Include="HumanPhysicsComponent.hpp" />
     <ClInclude Include="MatrixStack.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="PlayerInputComponent.hpp" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Shape.h" />
+    <ClInclude Include="State.hpp" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="stb_image_write.h" />
     <ClInclude Include="Texture.h" />

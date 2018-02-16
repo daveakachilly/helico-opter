@@ -27,14 +27,14 @@
 //Components
 #include "Component.hpp"
 
-#include "DefaultInputComponent.hpp"
-#include "DefaultPhysicsComponent.hpp"
-#include "DefaultGraphicsComponent.hpp"
-
-#include "PlayerInputComponent.hpp"
-#include "PlayerPhysicsComponent.hpp"
-
 #include "BirdPhysicsComponent.hpp"
+
+#include "HeliPhysicsComponent.hpp"
+#include "HumanPhysicsComponent.hpp"
+#include "DefaultGraphicsComponent.hpp"
+#include "HelicopterInputComponent.hpp"
+#include "HumanInputComponent.hpp"
+#include "DefaultInputComponent.hpp"
 
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
@@ -81,8 +81,7 @@ public:
     //State previousState = currentState;
     
     std::shared_ptr<Camera> camera;
-    
-    std::shared_ptr<GameObject> player;
+
     std::shared_ptr<GameObject> temporaryGameObjectPointer;
     
     std::shared_ptr<Model> temporaryModel;
@@ -90,13 +89,21 @@ public:
     std::shared_ptr<Model> birdModel;
     std::shared_ptr<Model> helicopterModel;
     
-    std::vector< std::shared_ptr<Model> > models;
+    std::vector<std::shared_ptr<Model>> models;
+    std::shared_ptr<GameObject> helicopter;
+	std::shared_ptr<GameObject> human;
+    
+	std::shared_ptr<Model> humanModel;
+
+    //std::vector<std::shared_ptr<Actor>> actors;
     
     std::vector< std::shared_ptr<InputComponent> > inputComponents;
     std::vector< std::shared_ptr<PhysicsComponent> > physicsComponents;
     std::vector< std::shared_ptr<GraphicsComponent> > graphicsComponents;
     
-    std::shared_ptr<PlayerInputComponent> playerInputComponent;
+	std::shared_ptr<DefaultInputComponent> input;
+    std::shared_ptr<HelicopterInputComponent> helicopterInputComponent;
+	std::shared_ptr<HumanInputComponent> humanInputComponent;
     
     std::shared_ptr<Texture> heightmapTexture;
     std::shared_ptr<Texture> grassTexture;
@@ -133,7 +140,8 @@ public:
 
     void initGeom(const std::string& resourceDirectory);
     
-    void initPlayer(std::shared_ptr<Model> model);
+    void initHeli(std::shared_ptr<Model> model);
+	void initHuman(std::shared_ptr<Model> model);
     void initCamera();
     
     /**** geometry set up for ground plane *****/

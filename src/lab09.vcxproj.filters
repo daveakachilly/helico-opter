@@ -15,6 +15,18 @@
     <ClCompile Include="tiny_obj_loader.cpp">
       <Filter>ext</Filter>
     </ClCompile>
+    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DefaultGraphicsComponent.cpp" />
+    <ClCompile Include="DefaultPhysicsComponent.cpp" />
+    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="HelicopterInputComponent.cpp" />
+    <ClCompile Include="HeliPhysicsComponent.cpp" />
+    <ClCompile Include="HumanInputComponent.cpp" />
+    <ClCompile Include="HumanPhysicsComponent.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="PlayerInputComponent.cpp" />
+    <ClCompile Include="State.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Program.h" />
@@ -29,6 +41,20 @@
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="stb_image_write.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Application.hpp" />
+    <ClInclude Include="Camera.hpp" />
+    <ClInclude Include="Component.hpp" />
+    <ClInclude Include="DDS_Loader.hpp" />
+    <ClInclude Include="DefaultGraphicsComponent.hpp" />
+    <ClInclude Include="DefaultPhysicsComponent.hpp" />
+    <ClInclude Include="GameObject.hpp" />
+    <ClInclude Include="HelicopterInputComponent.hpp" />
+    <ClInclude Include="HeliPhysicsComponent.hpp" />
+    <ClInclude Include="HumanInputComponent.hpp" />
+    <ClInclude Include="HumanPhysicsComponent.hpp" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="PlayerInputComponent.hpp" />
+    <ClInclude Include="State.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ext">

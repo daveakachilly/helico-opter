@@ -16,7 +16,6 @@ class State {
 public:
     //Variables
     std::vector<std::shared_ptr<GameObject>> gameObjects;
-    
     //Contructors
     State();
     State(const State &oldState);

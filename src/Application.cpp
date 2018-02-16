@@ -1,4 +1,4 @@
-//
+//j
 //  Application.cpp
 //  Helico-opter
 //
@@ -17,38 +17,54 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
-    else if (key == GLFW_KEY_A && (action == GLFW_PRESS))
-    {
-        playerInputComponent->movingForward = true;
-    }
-    else if (key == GLFW_KEY_D && (action == GLFW_PRESS))
-    {
-        playerInputComponent->movingBackward = true;
-    }
-    else if (key == GLFW_KEY_A && (action == GLFW_RELEASE))
-    {
-        playerInputComponent->movingForward = false;
-    }
-    else if (key == GLFW_KEY_D && (action == GLFW_RELEASE))
-    {
-        playerInputComponent->movingBackward = false;
-    }
     else if (key == GLFW_KEY_W && (action == GLFW_PRESS))
     {
-        playerInputComponent->movingUpward = true;
+		printf("%s", "im being clicked\n");
+        helicopterInputComponent->helicopterUp = true;
+		if (humanInputComponent->humanDown == false) {
+			//humanInputComponent->humanUp = true;
+		}
+		helicopter->up = true;
     }
     else if (key == GLFW_KEY_S && (action == GLFW_PRESS))
     {
-        playerInputComponent->movingDownward = true;
+		helicopterInputComponent->helicopterDown = true;
+		if (humanInputComponent->humanUp == false) {
+			//humanInputComponent->humanDown = true;
+		}
+		helicopter->down = true;
     }
     else if (key == GLFW_KEY_W && (action == GLFW_RELEASE))
     {
-        playerInputComponent->movingUpward = false;
+		helicopterInputComponent->helicopterUp = false;
+		//humanInputComponent->humanUp = false;
+		helicopter->up = false;
     }
     else if (key == GLFW_KEY_S && (action == GLFW_RELEASE))
     {
-        playerInputComponent->movingDownward = false;
+		helicopterInputComponent->helicopterDown = false;
+		//humanInputComponent->humanDown = false;
+		helicopter->down = false;
     }
+	else if (key == GLFW_KEY_UP && (action == GLFW_PRESS))
+	{
+		humanInputComponent->humanUp = true;
+		human->up = true;
+	}
+	else if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS))
+	{
+		humanInputComponent->humanDown = true;
+		human->down = true;
+	}
+	else if (key == GLFW_KEY_UP && (action == GLFW_RELEASE)) {
+		humanInputComponent->humanUp = false;
+		human->up = false;
+	}
+	else if (key == GLFW_KEY_DOWN && (action == GLFW_RELEASE))
+	{
+		humanInputComponent->humanDown = false;
+		human->down = false;
+	}
 }
 
 //Todo: Remove these (Idk if they're being optimized out, but hopefully
@@ -72,7 +88,10 @@ void Application::init(const std::string& resourceDirectory) {
     initShaders(resourceDirectory+"/shaders");
     initTextures(resourceDirectory+"/models");
     initGeom(resourceDirectory+"/models");
-    initPlayer(helicopterModel);
+
+    initHeli(helicopterModel);
+	initHuman(humanModel);
+
     initCamera();
     initBirds();
     initQuad();
@@ -162,9 +181,10 @@ void Application::initGeom(const std::string& resourceDirectory) {
     {
         cerr << errStr << endl;
     } else {
-        sphereModel = make_shared<Model>();
-        sphereModel->createModel(TOshapes, objMaterials);
+		sphereModel = make_shared<Model>();
+		sphereModel->createModel(TOshapes, objMaterials);
     }
+
     //load in the mesh and make the shapes
     rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
                                (resourceDirectory + "/Bird_01.obj").c_str());
@@ -188,28 +208,58 @@ void Application::initGeom(const std::string& resourceDirectory) {
         helicopterModel->rotate( vec3(0.0f, 0.0f, 0.0f) );
         helicopterModel->scale *= 2.0f;
     }
+
+	bool rc2 = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
+		(resourceDirectory + "/sphere.obj").c_str());
+	if (!rc2)
+	{
+		cerr << errStr << endl;
+	}
+	else {
+		humanModel = make_shared<Model>();
+		humanModel->createModel(TOshapes, objMaterials);
+	}
 }
 
-void Application::initPlayer(shared_ptr<Model> model) {
-    shared_ptr<PlayerInputComponent> input = make_shared<PlayerInputComponent> ();
+void Application::initHeli(shared_ptr<Model> model) {
+    shared_ptr<HelicopterInputComponent> input = make_shared<HelicopterInputComponent> ();
     inputComponents.push_back(input);
     
-    shared_ptr<PlayerPhysicsComponent> physics = make_shared<PlayerPhysicsComponent> ();
+    shared_ptr<HeliPhysicsComponent> physics = make_shared<HeliPhysicsComponent> ();
     physicsComponents.push_back(physics);
     
     shared_ptr<DefaultGraphicsComponent> graphics = make_shared<DefaultGraphicsComponent> ();
     graphicsComponents.push_back(graphics);
     graphics->models.push_back(model);
     
-    playerInputComponent = input;
-    player = make_shared<GameObject>(input, physics, graphics);
-    
-    currentState->gameObjects.push_back(player);
+    helicopterInputComponent = input;
+    helicopter = make_shared<GameObject>(input, physics, graphics);
+	helicopter->heli = true;
+	helicopter->gameObj = helicopter;
+    currentState->gameObjects.push_back(helicopter);
+}
+
+void Application::initHuman(shared_ptr<Model> model) {
+	shared_ptr<HumanInputComponent> input = make_shared<HumanInputComponent>();
+	inputComponents.push_back(input);
+
+	shared_ptr<HumanPhysicsComponent> physics = make_shared<HumanPhysicsComponent>();
+	physicsComponents.push_back(physics);
+
+	shared_ptr<DefaultGraphicsComponent> graphics = make_shared<DefaultGraphicsComponent>();
+	graphicsComponents.push_back(graphics);
+	graphics->models.push_back(model);
+
+	humanInputComponent = input;
+	human = make_shared<GameObject>(input, physics, graphics);
+	human->human = true;
+	human->gameObj = helicopter;
+	currentState->gameObjects.push_back(human);
 }
 
 void Application::initCamera() {
     camera = make_shared<Camera>();
-    camera->player = player;
+    camera->player = helicopter;
 }
 
 /**** geometry set up for ground plane *****/
@@ -317,9 +367,9 @@ void Application::render(float t, float alpha) {
         previous = previousState->gameObjects.at(0).get()->position;
     vec3 current = currentState->gameObjects.at(0).get()->position;
     
-    printf("Ren %f %f %f\n", rendered.x, rendered.y, rendered.z);
+    /*printf("Ren %f %f %f\n", rendered.x, rendered.y, rendered.z);
     printf("Cur %f %f %f\n", current.x, current.y, current.z);
-    printf("Prv %f %f %f\n", previous.x, current.y, current.z);
+    printf("Prv %f %f %f\n", previous.x, current.y, current.z);*/
     
     camera->player = state.gameObjects.at(0);
     renderState(state);
@@ -363,7 +413,7 @@ void Application::renderState(State& state) {
     
 
     //texture offset
-    glm::vec2 offset(player->position.x / 10.0f, 0.0f);
+    glm::vec2 offset(helicopter->position.x / 10.0f, 0.0f);
     //glm::vec2 offset(floor(-player->position.y), floor(player->position.z));
     w = glfwGetTime()/10;
     CHECKED_GL_CALL(glUniform2fv(groundProgram->getUniform("offset"), 1, &offset[0]));
@@ -371,7 +421,7 @@ void Application::renderState(State& state) {
     auto M = make_shared<MatrixStack>();
     M->pushMatrix();
         M->loadIdentity();
-        M->translate(glm::vec3(player->position.x+20.0f, 0.0f, 0.0f));
+        M->translate(glm::vec3(helicopter->position.x+20.0f, 0.0f, 0.0f));
         M->scale(glm::vec3(15.0f, 15.0f, 15.0f));
         CHECKED_GL_CALL(glUniformMatrix4fv(groundProgram->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix())));
     M->popMatrix();
@@ -495,9 +545,9 @@ void Application::testCollisions() {
     }
     
     for(auto &gameObject : currentState->gameObjects) {
-        if(gameObject != player && player->collisionCooldown <= 0.0f && gameObject->collisionCooldown <= 0.0f) {
-            if( isCollision(player, gameObject) ) {
-                setCollisionCooldown(player);
+        if(gameObject != helicopter && helicopter->collisionCooldown <= 0.0f && gameObject->collisionCooldown <= 0.0f) {
+            if( isCollision(helicopter, gameObject) ) {
+                setCollisionCooldown(helicopter);
                 setCollisionCooldown(gameObject);
                 
                 decrementPlayerHealth();
@@ -521,13 +571,13 @@ void Application::decrementPlayerHealth() {
     
     switch(playerHealth) {
         case 2:
-            player->graphics->material = 0;
+            helicopter->graphics->material = 0;
             break;
         case 1:
-            player->graphics->material = 6;
+            helicopter->graphics->material = 6;
             break;
         case 0:
-            player->graphics->material = 5;
+            helicopter->graphics->material = 5;
             gameLost();
             break;
     }

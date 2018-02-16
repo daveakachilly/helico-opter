@@ -68,11 +68,11 @@ int main(int argc, char **argv)
             t += dt;
             numSimulationsThisFrame++;
         }
-        
+        /*
         if( application->gameOver == false ) {
             printf("Frame Rate: %f\tTime: %f\n", 1.0f / frameTime, frameTime);
             printf("Num Simulations: %d\n", numSimulationsThisFrame);
-        }
+        } */
         
         float alpha = accumulator/dt;
         

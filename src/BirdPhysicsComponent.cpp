@@ -10,8 +10,8 @@
 using namespace std;
 using namespace glm;
 
-void BirdPhysicsComponent::update(GameObject& gameObject, float dt) {
-    integrate(gameObject, dt);
+void BirdPhysicsComponent::update(GameObject& gameObject1, GameObject& gameObject2, float dt) {
+    integrate(gameObject1, dt);
 }
 
 void BirdPhysicsComponent::integrate(GameObject& gameObject, float dt) {

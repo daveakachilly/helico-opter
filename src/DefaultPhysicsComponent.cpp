@@ -25,15 +25,20 @@ void DefaultPhysicsComponent::integrate(GameObject& gameObject, float dt) {
     gameObject.position += gameObject.velocity * dt;
     
     float groundHeight = calculateGroundHeight();
-    
+	float maxHeight = 15.f;
+
     if(gameObject.position.y < groundHeight ) {
         gameObject.velocity.y = 0.0f;
         gameObject.position.y = groundHeight;
     }
+	else if (gameObject.position.y > maxHeight) {
+		gameObject.velocity.y = -9.8f;
+		gameObject.position.y = maxHeight;
+	}
 }
 
 float DefaultPhysicsComponent::calculateGroundHeight() {
-    return 1.0f;
+    return 1.5f;
 }
 
 vec3 DefaultPhysicsComponent::calculateAcceleration(GameObject& gameObject, float dt) {

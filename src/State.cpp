@@ -75,6 +75,12 @@ void State::integrate(float t, double dt)
 {
     //printf("NumObjects: %d\n", gameObjects.size());
     for(auto &gameObject : gameObjects) {
-        gameObject->simulate(dt);
+		if (gameObject->heli == true) {
+			gameObject->simulate(*gameObject->gameObj, dt);
+		}
+		else if (gameObject->human == true) {
+			gameObject->simulate(*gameObject->gameObj, dt);
+		}
     }
+
 }
