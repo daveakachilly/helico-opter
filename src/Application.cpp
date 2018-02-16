@@ -98,7 +98,8 @@ void Application::init(const std::string& resourceDirectory) {
     initTextures(resourceDirectory+"/models");
     initGeom(resourceDirectory+"/models");
     initPlayer(helicopterModel);
-    initGUI();
+  //  initGUI();
+    initAudio();
     initCamera();
     initBirds();
     initQuad();
