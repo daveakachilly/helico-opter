@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.7)
 project(Helico-opter)
 
 # Use glob to get the list of all source files.
-file(GLOB_RECURSE SOURCES "src/*.cpp" "ext/glad/src/*.c" "src/*.h" "ext/fmod/*.h" "ext/fmod/*.hpp") 
+file(GLOB_RECURSE SOURCES "src/*.cpp" "ext/glad/src/*.c" "src/*.h") 
 
 # We don't really need to include header and resource files to build, but it's
 # nice to have them show up in IDEs.
@@ -12,7 +12,7 @@ file(GLOB_RECURSE HEADERS "src/*.h" "src/*.hpp" "ext/glad/*/*.h")
 file(GLOB_RECURSE GLSL "resources/*.glsl")
 file(GLOB_RECURSE SRC_EXT "ext/*.cpp" "ext/*.c" "ext/.h")
 
-include_directories("ext/glad/include", "ext/fmod")
+include_directories("ext/glad/include")
 
 # Set the executable.
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS} ${GLSL})

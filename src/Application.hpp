@@ -36,8 +36,6 @@
 
 #include "BirdPhysicsComponent.hpp"
 
-#include "AudioEngine.hpp"
-
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -75,7 +73,6 @@ public:
     int copterHealth = 3;
     int manHealth = 3;
     WindowManager * windowManager = nullptr;
-    std::shared_ptr<AudioEngine> audio;
     
     // Our shader program
     std::shared_ptr<Program> mainProgram;
@@ -88,6 +85,9 @@ public:
     std::shared_ptr<Camera> camera;
     
     std::shared_ptr<GameObject> player;
+    std::shared_ptr<GameObject> copterHealthObjs[3];
+    std::shared_ptr<PlayerInputComponent> playerInputComponent;
+
     std::shared_ptr<GameObject> temporaryGameObjectPointer;
     
     std::shared_ptr<Model> temporaryModel;
@@ -100,8 +100,6 @@ public:
     std::vector< std::shared_ptr<InputComponent> > inputComponents;
     std::vector< std::shared_ptr<PhysicsComponent> > physicsComponents;
     std::vector< std::shared_ptr<GraphicsComponent> > graphicsComponents;
-    
-  std::shared_ptr<PlayerInputComponent> playerInputComponent [3];
 
     
     std::shared_ptr<Texture> heightmapTexture;
@@ -125,6 +123,8 @@ public:
     void resizeCallback(GLFWwindow *window, int width, int height);
     
     void init(const std::string& resourceDirectory);
+
+    void moveGUIElements();
     
     //code to set up the two shaders - a diffuse shader and texture mapping
     void initShaders(const std::string& resourceDirectory);

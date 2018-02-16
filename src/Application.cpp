@@ -20,6 +20,7 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     else if (key == GLFW_KEY_A && (action == GLFW_PRESS))
     {
       moveForward(true);
+      changeCopterHealth(-1);
     }
     else if (key == GLFW_KEY_D && (action == GLFW_PRESS))
     {
@@ -52,27 +53,19 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
 }
 
 void Application::moveUpward(bool b) {
-  for(int i = 0; i < 4; i ++) {
-    playerInputComponent[i]->movingUpward = b;
-  }
+    playerInputComponent->movingUpward = b;
 }
 
 void Application::moveDownward(bool b) {
-  for(int i = 0; i < 4; i ++) {
-    playerInputComponent[i]->movingDownward = b;
-  }
+    playerInputComponent->movingDownward = b;
 }
 
 void Application::moveForward(bool b) {
-  for(int i = 0; i < 4; i ++) {
-    playerInputComponent[i]->movingForward = b;
-  }
+    playerInputComponent->movingForward = b;
 }
 
 void Application::moveBackward(bool b) {
-  for(int i = 0; i < 4; i ++) {
-    playerInputComponent[i]->movingBackward = b;
-  }
+    playerInputComponent->movingBackward = b;
 }
 
 
@@ -98,8 +91,7 @@ void Application::init(const std::string& resourceDirectory) {
     initTextures(resourceDirectory+"/models");
     initGeom(resourceDirectory+"/models");
     initPlayer(helicopterModel);
-  //  initGUI();
-    initAudio();
+    initGUI();
     initCamera();
     initBirds();
     initQuad();
@@ -175,12 +167,6 @@ void Application::initTextures(const std::string& resourceDirectory) {
     //grassTexture->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 }
 
-void Application::initAudio() {
-  audio = make_shared<AudioEngine>();
-  audio->openAudio();
-  audio->loopSong();
-}
-
 void Application::initGeom(const std::string& resourceDirectory) {
     // this is the tiny obj shapes - not to be confused with our shapes
     vector<tinyobj::shape_t> TOshapes;
@@ -234,7 +220,7 @@ void Application::initPlayer(shared_ptr<Model> model) {
     graphicsComponents.push_back(graphics);
     graphics->models.push_back(model);
     
-    playerInputComponent[0] = input;
+    playerInputComponent = input;
     player = make_shared<GameObject>(input, physics, graphics);
     
     currentState->gameObjects.push_back(player);
@@ -342,6 +328,8 @@ void Application::integrate(float t, float dt) {
 }
 
 void Application::render(float t, float alpha) {
+
+	moveGUIElements();
     State state = State::interpolate( *previousState, *currentState, alpha);
     //state = currentState;
     vec3 rendered = state.gameObjects.at(0).get()->position;
@@ -427,7 +415,7 @@ void Application::SetMaterial(const std::shared_ptr<Program> prog, int i)
     switch (i)
     {
         case 0: //shiny blue plastic
-            glUniform3f(prog->getUniform("mAmbientCoefficient"), 0.02f, 0.04f, 0.2f);
+       	    glUniform3f(prog->getUniform("mAmbientCoefficient"), 0.02f, 0.04f, 0.2f);
             glUniform3f(prog->getUniform("mDiffusionCoefficient"), 0.0f, 0.16f, 0.9f);;
             break;
         case 1: // flat grey
@@ -454,6 +442,10 @@ void Application::SetMaterial(const std::shared_ptr<Program> prog, int i)
             glUniform3f(prog->getUniform("mAmbientCoefficient"), 0.0913f, 0.1735f, 0.1225f);
             glUniform3f(prog->getUniform("mDiffusionCoefficient"), 0.438f, 0.4048f, 0.428f);
             break;
+	case 7: //RUBY
+	    glUniform3f(prog->getUniform("mAmbientCoefficient"), 0.17f, 0.01f, 0.01f);
+            glUniform3f(prog->getUniform("mDiffusionCoefficient"), 0.61f, 0.04f, 0.04f);
+
     }
 }
 
@@ -491,27 +483,36 @@ void Application::createBird(shared_ptr<Model> model, vec3 position) {
 
 void Application::initGUI()
 {
-	shared_ptr<PlayerInputComponent> input = make_shared<PlayerInputComponent>();
+	shared_ptr<DefaultInputComponent> input = make_shared<DefaultInputComponent>();
 	inputComponents.push_back(input);
 
-	shared_ptr<PlayerPhysicsComponent> physics = make_shared<PlayerPhysicsComponent>();
+	shared_ptr<DefaultPhysicsComponent> physics = make_shared<DefaultPhysicsComponent>();
 	physicsComponents.push_back(physics);
 
 	shared_ptr<DefaultGraphicsComponent> graphics = make_shared<DefaultGraphicsComponent>();
 	graphicsComponents.push_back(graphics);
 	graphics->models.push_back(helicopterModel); //Give this graphics component model
-	graphics->material = 1;
+	graphics->material = 7;
 	//Todo: Give constructor to graphics for models.
 
 	for (int i = 0; i < 3; i++) {
 		temporaryGameObjectPointer = make_shared<GameObject>(input, physics, graphics);
-		temporaryGameObjectPointer->position = vec3(0 + (i * 10), -10, 0);
+		temporaryGameObjectPointer->position = vec3(-15 + (i * 5), -25, 0);
 		temporaryGameObjectPointer->velocity = vec3(0, 0, 0);
 		temporaryGameObjectPointer->radius = 0;
-		playerInputComponent[i+1] = input;
+		temporaryGameObjectPointer->scale = 0.6f;
+		copterHealthObjs[i] = temporaryGameObjectPointer;
 		currentState->gameObjects.push_back(temporaryGameObjectPointer);
 	}
 }
+
+void Application::moveGUIElements() {
+	for (int i = 0; i < copterHealth; i++) {
+		copterHealthObjs[i]->position = vec3((player->position.x - 7) + (4 * i), player->position.y - 10 - (float)(i / 2.5), player->position.z);
+		copterHealthObjs[i]->scale = 0.6f;
+	}
+}
+
 
 void Application::initBirds() {
     /*
@@ -558,7 +559,6 @@ void Application::testCollisions() {
             if( isCollision(player, gameObject) ) {
                 setCollisionCooldown(player);
                 setCollisionCooldown(gameObject);
-                audio->playSound();
                 changeCopterHealth(-1);
             }
         }
@@ -579,16 +579,15 @@ void Application::changeCopterHealth(int i) {
 	copterHealth += i;
 
 	switch (copterHealth) {
-	case 2:
-		currentState->gameObjects.at(3)->enabled = false;
+	case 2:		
 		player->graphics->material = 0;
 		break;
 	case 1:
-		currentState->gameObjects.at(2)->enabled = false;
+		copterHealthObjs[1]->enabled = false;
 		player->graphics->material = 6;
 		break;
 	case 0:
-		currentState->gameObjects.at(3)->enabled = false;
+		copterHealthObjs[0]->enabled = false;
 		player->graphics->material = 5;
 		gameLost();
 		break;
