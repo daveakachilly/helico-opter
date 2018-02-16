@@ -1,4 +1,4 @@
-//
+//j
 //  Application.cpp
 //  Helico-opter
 //
@@ -21,8 +21,7 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     {
         helicopterInputComponent->helicopterUp = true;
 		if (humanInputComponent->humanDown == false) {
-			humanInputComponent->humanUp = true;
-			humanInputComponent->count++;
+			//humanInputComponent->humanUp = true;
 		}
 		helicopter->up = true;
     }
@@ -30,57 +29,40 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     {
 		helicopterInputComponent->helicopterDown = true;
 		if (humanInputComponent->humanUp == false) {
-			humanInputComponent->humanDown = true;
-			humanInputComponent->count--;
+			//humanInputComponent->humanDown = true;
 		}
 		helicopter->down = true;
     }
     else if (key == GLFW_KEY_W && (action == GLFW_RELEASE))
     {
 		helicopterInputComponent->helicopterUp = false;
-		humanInputComponent->humanUp = false;
+		//humanInputComponent->humanUp = false;
 		helicopter->up = false;
-		humanInputComponent->count--;
     }
     else if (key == GLFW_KEY_S && (action == GLFW_RELEASE))
     {
 		helicopterInputComponent->helicopterDown = false;
-		humanInputComponent->humanDown = false;
+		//humanInputComponent->humanDown = false;
 		helicopter->down = false;
-		humanInputComponent->count++;
     }
 	else if (key == GLFW_KEY_UP && (action == GLFW_PRESS))
 	{
 		humanInputComponent->humanUp = true;
 		human->up = true;
-		humanInputComponent->count++;
 	}
 	else if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS))
 	{
 		humanInputComponent->humanDown = true;
 		human->down = true;
-		if (humanInputComponent->count >= 0) {
-			humanInputComponent->count -= 2;
-		}
-		else {
-			humanInputComponent->count--;
-		}
 	}
 	else if (key == GLFW_KEY_UP && (action == GLFW_RELEASE)) {
 		humanInputComponent->humanUp = false;
 		human->up = false;
-		humanInputComponent->count--;
 	}
 	else if (key == GLFW_KEY_DOWN && (action == GLFW_RELEASE))
 	{
 		humanInputComponent->humanDown = false;
 		human->down = false;
-		if (humanInputComponent->count <= -1) {
-			humanInputComponent->count += 2;
-		}
-		else {
-			humanInputComponent->count++;
-		}
 	}
     /*else if (key == GLFW_KEY_X && (action == GLFW_PRESS))
     {

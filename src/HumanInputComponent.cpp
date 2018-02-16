@@ -8,16 +8,15 @@
 #include "HumanInputComponent.hpp"
 
 void HumanInputComponent::update(GameObject& gameObject) {
-    if (humanUp || humanDown) {
-		if (count == 0)
-		{
-			gameObject.impulse += gameObject.forwardDirection * 0.5f;
-		}
-		else {
-			gameObject.impulse += gameObject.forwardDirection * 0.5f * float(count);
-		}
+    if (humanUp) {
+        gameObject.impulse += gameObject.forwardDirection * 0.15f;
+		if (gameObject.impulse.y > 0.f)
+			gameObject.impulse.y = 0.f;
+    } else if (humanDown) {
+        gameObject.impulse += gameObject.forwardDirection * -0.15f;
+		if (gameObject.impulse.y < -10.f)
+			gameObject.impulse.y = -10.f;
     }
-	printf("Count: %d\n", count);
     if (jumping) {
         gameObject.impulse.y += 2.0f;
         jumping = false;

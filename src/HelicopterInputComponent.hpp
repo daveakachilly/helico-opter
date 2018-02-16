@@ -20,7 +20,7 @@ public:
     bool helicopterUp = false;
     bool helicopterDown = false;
     bool jumping = false;
-
+    
     //Functions
     virtual void update(GameObject& gameObject);
 };
