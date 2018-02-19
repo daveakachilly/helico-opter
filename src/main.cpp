@@ -10,27 +10,20 @@ const int windowHeight = 420;
 int main(int argc, char **argv)
 {
     // Where the resources are loaded from
-    std::string resourceDir = "../resources";
+    std::string resourceDir = "../../resources";
     
     if (argc >= 2)
     {
         resourceDir = argv[1];
     }
     
-    
     Application *application = new Application();
     
-    // Your main will always include a similar set up to establish your window
-    // and GL context, etc.
-    
+    //Set up window manager (internally uses GLFW)
     WindowManager *windowManager = new WindowManager();
     windowManager->init(windowWidth, windowHeight);
     windowManager->setEventCallbacks(application);
     application->windowManager = windowManager;
-    
-    // This is the code that will likely change program to program as you
-    // may need to initialize or set up different data and state
-    
     
     application->init(resourceDir);
     
@@ -50,7 +43,6 @@ int main(int argc, char **argv)
         double frameTime = newTime - currentTime;
         currentTime = newTime;
         
-        
         /*
         if (frameTime>0.25f)
             frameTime = 0.25f;*/
@@ -62,21 +54,20 @@ int main(int argc, char **argv)
         {
             accumulator -= dt;
             
-            //application->simulate(dt);
-            application->integrate( t, dt);
-            //integrate(current, t, dt);
+            application->integrate( t, dt); //simulate
+            
             t += dt;
             numSimulationsThisFrame++;
         }
         
         if( application->gameOver == false ) {
-            printf("Frame Rate: %f\tTime: %f\n", 1.0f / frameTime, frameTime);
-            printf("Num Simulations: %d\n", numSimulationsThisFrame);
+            //printf("Frame Rate: %f\tTime: %f\n", 1.0f / frameTime, frameTime);
+            //printf("Num Simulations: %d\n", numSimulationsThisFrame);
         }
         
         float alpha = accumulator/dt;
         
-        //Interpolates automatically in application
+        //Interpolates automatically in Application.cpp
         application->render( t, alpha);
         
         // Swap front and back buffers.
