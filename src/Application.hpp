@@ -76,6 +76,7 @@ public:
     //Shader Programs
     std::shared_ptr<Program> mainProgram;
     std::shared_ptr<Program> groundProgram;
+	std::shared_ptr<Program> sky;
     
     //Physics & Collisions
     //at global scope
@@ -135,6 +136,17 @@ public:
     void initQuad();
     
     void renderGround();
+
+	//Skybox
+	GLuint vbo, vao, tex_cube;
+
+	void initSkybox(const std::string& resourceDirectory, 
+		const std::string& skyboxDirectory);
+	void createCubeMap(const std::string& front, const std::string& back,
+		const std::string& top, const std::string& bottom, const std::string& left,
+		const std::string& right, GLuint* tex_cube);
+	bool loadCubeMapSide(GLuint texture, GLenum side_target,
+		const std::string& filename);
     
     //Physics
     void integrate(float t, float dt);

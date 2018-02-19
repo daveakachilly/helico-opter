@@ -6,6 +6,7 @@
 //
 
 #include "Application.hpp"
+#include "stb_image.h"
 #define PI 3.1415
 
 using namespace std;
@@ -24,6 +25,7 @@ void Application::init(const std::string& resourceDirectory) {
     
     initBox2DWorld();
     initEntities();
+	  initSkybox(resourceDirectory + "/shaders", resourceDirectory + "/skybox");
 }
 
 
@@ -43,7 +45,7 @@ void Application::initMainProgram(const std::string& resourceDirectory) {
     // Initialize the GLSL program.
     mainProgram = make_shared<Program>();
     mainProgram->setVerbose(true);
-    mainProgram->setShaderNames(  resourceDirectory + "/mainVert.glsl",
+    mainProgram->setShaderNames(resourceDirectory + "/mainVert.glsl",
                                 resourceDirectory + "/mainFrag.glsl");
     
     if (! mainProgram->init()) {
@@ -68,9 +70,9 @@ void Application::initMainProgram(const std::string& resourceDirectory) {
 void Application::initGroundProgram(const std::string& resourceDirectory) {
     groundProgram = make_shared<Program>();
     groundProgram->setVerbose(true);
-    groundProgram->setShaderNames(
-                                  resourceDirectory + "/water_vert.glsl",
+    groundProgram->setShaderNames(resourceDirectory + "/water_vert.glsl",
                                   resourceDirectory + "/water_frag.glsl");
+
     if (! groundProgram->init())
     {
         std::cerr << "One or more shaders failed to compile... exiting!" << std::endl;
@@ -271,17 +273,35 @@ void Application::initBirds() {
 
 void Application::initQuad()
 {
-    float g_groundSize = gridDistanceFromCenter;
-    float g_groundY = gridHeight;
+    GLuint VertexArrayID;
+    //generate the VAO
+    glGenVertexArrays(1, &VertexArrayID);
+    glBindVertexArray(VertexArrayID);
+    //float g_groundSize = gridDistanceFromCenter;
+    //float g_groundY = gridHeight;
     
     // A x-z plane at y = g_groundY of dim[-g_groundSize, g_groundSize]^2
-    float GroundPos[] = {
+    /*float GroundPos[] = {
         -g_groundSize, g_groundY, -g_groundSize,
         -g_groundSize, g_groundY,  g_groundSize,
         g_groundSize, g_groundY,  g_groundSize,
         g_groundSize, g_groundY, -g_groundSize
-    };
+    };*/
+   
+    GLfloat *GroundPos = new GLfloat[10000*18];
     
+    int verc = 0;
+    for (int i = 0; i < 100; i++){
+        for(int j = 0; j < 100; j++){
+            GroundPos[verc++] = 0.0 + j, GroundPos[verc++] = 0.0 + i, GroundPos[verc++] = 0.0;
+            GroundPos[verc++] = 1.0 + j, GroundPos[verc++] = 0.0 + i, GroundPos[verc++] = 0.0;
+            GroundPos[verc++] = 0.0 + j, GroundPos[verc++] = 1.0 + i, GroundPos[verc++] = 0.0;
+            GroundPos[verc++] = 1.0 + j, GroundPos[verc++] = 0.0 + i, GroundPos[verc++] = 0.0;
+            GroundPos[verc++] = 1.0 + j, GroundPos[verc++] = 1.0 + i, GroundPos[verc++] = 0.0;
+            GroundPos[verc++] = 0.0 + j, GroundPos[verc++] = 1.0 + i, GroundPos[verc++] = 0.0;
+        }
+    }
+   
     float GroundNorm[] = {
         0, 1, 0,
         0, 1, 0,
@@ -300,32 +320,51 @@ void Application::initQuad()
      }; */
     
     
-    float GroundTex[] = {
+    /*float GroundTex[] = {
         0, 0, // back
         0, g_groundSize,
         g_groundSize, g_groundSize,
         g_groundSize, 0
-    };
+    };*/
+   
+
+    float t= 1./100.;
+    int texc = 0;
+    GLfloat *GroundTex = new GLfloat[10000*12];
+    for (int i = 0; i < 100; i++) {
+        for (int j = 0; j < 100; j++) {
+            GroundTex[texc++] = (GLfloat)j*t, GroundTex[texc++] = (GLfloat)i*t;
+            GroundTex[texc++] = (GLfloat)(j + 1)*t, GroundTex[texc++] = (GLfloat)i*t;
+            GroundTex[texc++] = (GLfloat)j*t, GroundTex[texc++] = (GLfloat)(i + 1)*t;
+            GroundTex[texc++] = (GLfloat)(j + 1)*t, GroundTex[texc++] = 0.0 + (GLfloat)i*t;
+            GroundTex[texc++] = (GLfloat)(j + 1)*t, GroundTex[texc++] = (GLfloat)(i + 1)*t;
+            GroundTex[texc++] = (GLfloat)j*t, GroundTex[texc++] = (GLfloat)(i + 1)*t;
+        }
+    }
+   
     
     unsigned short idx[] = {0, 1, 2, 0, 2, 3};
     
-    GLuint VertexArrayID;
-    //generate the VAO
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
+    
     
     gGiboLen = 6;
+    
     glGenBuffers(1, &GroundBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, GroundBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GroundPos), GroundPos, GL_STATIC_DRAW);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(GroundPos), GroundPos, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*10000*18, GroundPos, GL_STATIC_DRAW);
+    
+    
+    
+    glGenBuffers(1, &GroundTextureBufferObject);
+    glBindBuffer(GL_ARRAY_BUFFER, GroundTextureBufferObject);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*10000*12, GroundTex, GL_STATIC_DRAW);
     
     glGenBuffers(1, &GroundNormalBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, GroundNormalBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GroundNorm), GroundNorm, GL_STATIC_DRAW);
     
-    glGenBuffers(1, &GroundTextureBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, GroundTextureBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GroundTex), GroundTex, GL_STATIC_DRAW);
+    
     
     glGenBuffers(1, &GroundIndexBufferObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GroundIndexBufferObject);
@@ -336,7 +375,7 @@ void Application::renderGround()
 {
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, GroundBufferObject);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
     
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, GroundNormalBufferObject);
@@ -344,15 +383,146 @@ void Application::renderGround()
     
     glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, GroundTextureBufferObject);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
     
     // draw!
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GroundIndexBufferObject);
-    glDrawElements(GL_TRIANGLES, gGiboLen, GL_UNSIGNED_SHORT, 0);
+    //glDrawElements(GL_TRIANGLES, gGiboLen, GL_UNSIGNED_SHORT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 10000*12);
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
+}
+
+void Application::initSkybox(const std::string& resourceDirectory,
+	const std::string& skyboxDirectory) {
+	sky = make_shared<Program>();
+	sky->setVerbose(true);
+	sky->setShaderNames(resourceDirectory + "/skybox_vert.glsl",
+						resourceDirectory + "/skybox_frag.glsl");
+	if (!sky->init())
+	{
+		std::cerr << "One or more skybox shaders failed to compile... exiting!" << std::endl;
+		exit(1);
+	}
+
+	sky->addUniform("P");
+	sky->addUniform("V");
+	sky->addUniform("cube_texture");
+	sky->addAttribute("vp");
+
+	float points[] = {
+		-70.0f,  70.0f, -70.0f,
+		-70.0f, -70.0f, -70.0f,
+		 70.0f, -70.0f, -70.0f,
+		 70.0f, -70.0f, -70.0f,
+		 70.0f,  70.0f, -70.0f,
+		-70.0f,  70.0f, -70.0f,
+
+		-70.0f, -70.0f,  70.0f,
+		-70.0f, -70.0f, -70.0f,
+		-70.0f,  70.0f, -70.0f,
+		-70.0f,  70.0f, -70.0f,
+		-70.0f,  70.0f,  70.0f,
+		-70.0f, -70.0f,  70.0f,
+
+		 70.0f, -70.0f, -70.0f,
+		 70.0f, -70.0f,  70.0f,
+		 70.0f,  70.0f,  70.0f,
+		 70.0f,  70.0f,  70.0f,
+		 70.0f,  70.0f, -70.0f,
+		 70.0f, -70.0f, -70.0f,
+
+		-70.0f, -70.0f,  70.0f,
+		-70.0f,  70.0f,  70.0f,
+		 70.0f,  70.0f,  70.0f,
+		 70.0f,  70.0f,  70.0f,
+		 70.0f, -70.0f,  70.0f,
+		-70.0f, -70.0f,  70.0f,
+
+		-70.0f,  70.0f, -70.0f,
+		 70.0f,  70.0f, -70.0f,
+		 70.0f,  70.0f,  70.0f,
+		 70.0f,  70.0f,  70.0f,
+		-70.0f,  70.0f,  70.0f,
+		-70.0f,  70.0f, -70.0f,
+
+		-70.0f, -70.0f, -70.0f,
+		-70.0f, -70.0f,  70.0f,
+		 70.0f, -70.0f, -70.0f,
+		 70.0f, -70.0f, -70.0f,
+		-70.0f, -70.0f,  70.0f,
+		 70.0f, -70.0f,  70.0f
+	};
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, 3 * 36 * sizeof(float), &points, GL_STATIC_DRAW);
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+
+	const std::string front = skyboxDirectory + "/lake1_ft.JPG";
+	const std::string back = skyboxDirectory + "/lake1_bk.JPG";
+	const std::string top = skyboxDirectory + "/lake1_up.JPG";
+	const std::string bottom = skyboxDirectory + "/lake1_dn.JPG";
+	const std::string left = skyboxDirectory + "/lake1_lf.JPG";
+	const std::string right = skyboxDirectory + "/lake1_rt.JPG";
+	createCubeMap(front, back, top, bottom, left, right, &tex_cube);
+
+}
+
+void Application::createCubeMap(const std::string& front, const std::string& back,
+	const std::string& top, const std::string& bottom, const std::string& left,
+	const std::string& right, GLuint* tex_cube) {
+	//generate cube-map texture to hold in all the sides
+	glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, tex_cube);
+
+	loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, front);
+	loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, back);
+	loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, top);
+	loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, bottom);
+	loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_POSITIVE_X, left);
+	loadCubeMapSide(*tex_cube, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, right);
+
+	//format cube map texture
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
+
+bool Application::loadCubeMapSide(GLuint texture, GLenum side_target,
+	const std::string& filename) {
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+
+	int x, y, n;
+	int force = 4;
+	unsigned char* imageData = stbi_load(filename.c_str(), &x, &y,
+		&n, force);
+
+	if (!imageData) {
+		fprintf(stderr, "ERROR: could not load %s\n", filename.c_str());	
+		return false;
+	}
+
+	//non-power-of-2 dimensions check
+	if ((x & (x - 1)) != 0 || (y & (y - 1)) != 0) {
+		fprintf(stderr, "WARNING: image %s is not power-of-2 dimensions\n",
+			filename.c_str());
+	}
+
+	//copy image data into target side of cube map
+	glTexImage2D(side_target, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+		imageData);
+	free(imageData);
+	return true;
 }
 
 void Application::integrate(float t, float dt) {
@@ -427,6 +597,19 @@ void Application::renderState(State& state) {
         renderGround();
     groundProgram->unbind();
     
+	/*draw skybox*/
+	glDepthMask(GL_FALSE);
+	sky->bind();
+		camera->setViewMatrix(sky);
+		camera->setProjectionMatrix(sky, aspect);
+		CHECKED_GL_CALL(glUniform1i(sky->getUniform("cube_texture"), 0));
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, tex_cube);
+		glBindVertexArray(vao);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	sky->unbind();
+	glDepthMask(GL_TRUE);
 }
 
 // helper function to set materials for shading
