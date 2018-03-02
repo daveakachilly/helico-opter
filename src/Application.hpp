@@ -24,6 +24,8 @@
 #include "Camera.hpp"
 #include "GameObject.hpp"
 
+#include "GUI.hpp"
+
 //Components
 #include "Component.hpp"
 
@@ -65,6 +67,7 @@ class Application : public EventCallbacks
 public:
 //Variables
     
+    bool gameStarted = false;
     bool gameOver = false;
     int playerHealth = 3;
     
@@ -74,12 +77,15 @@ public:
 	int copterHealth = 3;
 	int manHealth = 3;
 
+    unsigned int texture, VAO;
+
     WindowManager * windowManager = nullptr;
     
     //Shader Programs
     std::shared_ptr<Program> mainProgram;
     std::shared_ptr<Program> groundProgram;
 	std::shared_ptr<Program> sky;
+    std::shared_ptr<Program> guiProgram;
     
     //Physics & Collisions
     //at global scope
@@ -90,6 +96,8 @@ public:
     std::shared_ptr<State> previousState;
     
     std::shared_ptr<Camera> camera;
+
+    std::shared_ptr<GUI> gui;
     
     std::shared_ptr<GameObject> player;
 	std::shared_ptr<GameObject> copterHealthObjs[3];
@@ -125,6 +133,7 @@ public:
     void initShaders(const std::string& resourceDirectory);
     void initMainProgram(const std::string& resourceDirectory);
     void initGroundProgram(const std::string& resourceDirectory);
+    void initGUIProgram(const std::string& resourceDirectory);
 
     void initTextures(const std::string& resourceDirectory);
 	// Separate texture for water
@@ -157,6 +166,7 @@ public:
     void integrate(float t, float dt);
     void render(float t,  float alpha);
     void renderState(State& state);
+    void renderGUI();
     
     void simulate(float dt);
     
