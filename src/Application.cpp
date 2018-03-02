@@ -788,8 +788,8 @@ void Application::initGUI() {
 
 void Application::moveGUIElements() {
 	for (int i = 0; i < copterHealth; i++) {
-		copterHealthObjs[i]->position = vec3((player->position.x - 12) + (5 * i), player->position.y - 20 - (float)(i / 2.5), player->position.z);
-		copterHealthObjs[i]->scale = 0.6f;
+		copterHealthObjs[i]->position = vec3((player->position.x - 1.5f) + (3.0f * i), player->position.y - 4, player->position.z + 10);
+		copterHealthObjs[i]->scale = 0.5f;
 	}
 }
 
