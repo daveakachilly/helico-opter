@@ -532,42 +532,63 @@ void Application::render(float t, float alpha) {
 	moveGUIElements();
 
 	camera->player = currentState->gameObjects.at(0);
-    renderState(*currentState.get());
+	
+	CHECKED_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	CHECKED_GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	CHECKED_GL_CALL(glDisable(GL_CULL_FACE)); //default, two-sided rendering
+	mainProgram->bind();
+    //renderState(*currentState.get(), 0);
+	CHECKED_GL_CALL(glClear(GL_DEPTH_BUFFER_BIT));
+	renderState(*currentState.get(), 1);
+	mainProgram->unbind();
 }
 
-void Application::renderState(State& state) {
-    int windowWidth, windowHeight;
-    glfwGetFramebufferSize(windowManager->getHandle(), &windowWidth, &windowHeight);
-    glViewport(0, 0, windowWidth, windowHeight);
-    
-    float aspect = windowWidth/(float)windowHeight;
-    
-    CHECKED_GL_CALL( glBindFramebuffer(GL_FRAMEBUFFER, 0) );
-    CHECKED_GL_CALL( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
-    CHECKED_GL_CALL( glDisable(GL_CULL_FACE) ) ; //default, two-sided rendering
-    
-    mainProgram->bind();
-    
-        camera->setModelIdentityMatrix(mainProgram);
-        camera->setHelicopterViewMatrix(mainProgram);
-        camera->setProjectionMatrix(mainProgram, aspect);
-    
-        camera->setEyePosition(mainProgram);
-    
-        vec3 directionFromLight = vec3(0.0f) - vec3(-5.0f, 20.0f, 10.0f); //from X to origin
-        vec3 directionTowardsLight = -directionFromLight;
-        CHECKED_GL_CALL( glUniform3f(mainProgram->getUniform("directionTowardsLight"), directionTowardsLight.x, directionTowardsLight.y, directionTowardsLight.z) );
-    
+void Application::renderState(State& state, int renderType) {    
+	int windowWidth, windowHeight;
+	glfwGetFramebufferSize(windowManager->getHandle(), &windowWidth, &windowHeight);
+
+	float aspect = windowWidth / (float)windowHeight;
+	mat4 P = perspective(45.0f, aspect, 0.01f, 100.0f);
+
+	float cameraTheta = 0; //around Y axis (turn head left & right)
+	float cameraPhi = 0; // around Z axis (nod up & down)
+	float cameraDistance = 20.0f; //Distance from view to character (think 2.5d view)
+	float x = cos(radians(cameraPhi))*cos(radians(cameraTheta));
+	float y = sin(radians(cameraPhi));
+	float z = cos(radians(cameraPhi))*sin(radians(cameraTheta));
+	vec3 cameraIdentityVector = vec3(x, y, z);
+
+	mat4 V = lookAt(vec3(0.0f, 8.0f, 0.0f), cameraIdentityVector, vec3(0.0f, 1.0f, 0.0f));
+	V = translate(V, -1.0f * camera->player->position);
+	ExtractVFPlanes(P, V);
+	CULL = 1;
+		camera->setModelIdentityMatrix(mainProgram);
+		camera->setHelicopterViewMatrix(mainProgram);
+		if (renderType == 0) {
+			glViewport(0, 0, windowWidth, windowHeight);
+			camera->setProjectionMatrix(mainProgram, aspect);
+			camera->setEyePosition(mainProgram);
+		}
+		else if (renderType == 1) {
+			glViewport(0, 0, windowWidth, windowHeight);
+			camera->setEyePosition(mainProgram);
+			camera->setOrthoMatrix(mainProgram, 30.0f);
+			camera->setTopView(mainProgram);
+		}
+		vec3 directionFromLight = vec3(0.0f) - vec3(-5.0f, 20.0f, 5.0f); //from X to origin
+		vec3 directionTowardsLight = -directionFromLight;
+		CHECKED_GL_CALL(glUniform3f(mainProgram->getUniform("directionTowardsLight"), directionTowardsLight.x, directionTowardsLight.y, directionTowardsLight.z));
+
 		/* PRIMARY RENDER LOOP */
-        for(auto& gameObject : state.gameObjects) {
+		for (auto& gameObject : state.gameObjects) {
 			if (gameObject->enabled) {
-				SetMaterial(mainProgram, gameObject->graphics->material);
-				gameObject->render(mainProgram);
+				if (!ViewFrustCull(gameObject->position, -1.0)) {
+					SetMaterial(mainProgram, gameObject->graphics->material);
+					gameObject->render(mainProgram);
+				}
 			}
-        }
-    
-    mainProgram->unbind();
-    
+		}
+
     groundProgram->bind();
         camera->setModelIdentityMatrix(groundProgram);
         camera->setHelicopterViewMatrix(groundProgram);
@@ -610,6 +631,7 @@ void Application::renderState(State& state) {
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	sky->unbind();
 	glDepthMask(GL_TRUE);
+	
 }
 
 // helper function to set materials for shading
@@ -802,6 +824,104 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
 	else if (key == GLFW_KEY_S && (action == GLFW_RELEASE))
 	{
 		playerInputComponent->movingDownward = false;
+	}
+}
+
+void Application::ExtractVFPlanes(mat4 P, mat4 V) {
+	vec4 Left, Right, Bottom, Top, Near, Far;
+	mat4 comp = P * V;
+	vec3 n; //use to pull out normal
+	float l; //length of normal for plane normalization
+
+	Left.x = comp[0][3] + comp[0][0]; // see handout to fill in with values from comp
+	Left.y = comp[1][3] + comp[1][0]; // see handout to fill in with values from comp
+	Left.z = comp[2][3] + comp[2][0]; // see handout to fill in with values from comp
+	Left.w = comp[3][3] + comp[3][0]; // see handout to fill in with values from comp
+	n = vec3(Left.x, Left.y, Left.z);
+	l = length(n);
+	Left /= l;
+	planes[0] = Left;
+	cout << "Left' " << Left.x << " " << Left.y << " " << Left.z << " " << Left.w << endl;
+
+	Right.x = comp[0][3] - comp[0][0]; // see handout to fill in with values from comp
+	Right.y = comp[1][3] - comp[1][0]; // see handout to fill in with values from comp
+	Right.z = comp[2][3] - comp[2][0]; // see handout to fill in with values from comp
+	Right.w = comp[3][3] - comp[3][0]; // see handout to fill in with values from comp
+	n = vec3(Right.x, Right.y, Right.z);
+	l = length(n);
+	Right /= l;
+	planes[1] = Right;
+	cout << "Right " << Right.x << " " << Right.y << " " << Right.z << " " << Right.w << endl;
+
+	Bottom.x = comp[0][3] + comp[0][1]; // see handout to fill in with values from comp
+	Bottom.y = comp[1][3] + comp[1][1]; // see handout to fill in with values from comp
+	Bottom.z = comp[2][3] + comp[2][1]; // see handout to fill in with values from comp
+	Bottom.w = comp[3][3] + comp[3][1]; // see handout to fill in with values from comp
+	n = vec3(Bottom.x, Bottom.y, Bottom.z);
+	l = length(n);
+	Bottom /= l;
+	planes[2] = Bottom;
+	cout << "Bottom " << Bottom.x << " " << Bottom.y << " " << Bottom.z << " " << Bottom.w << endl;
+
+	Top.x = comp[0][3] - comp[0][1]; // see handout to fill in with values from comp
+	Top.y = comp[1][3] - comp[1][1]; // see handout to fill in with values from comp
+	Top.z = comp[2][3] - comp[2][1]; // see handout to fill in with values from comp
+	Top.w = comp[3][3] - comp[3][1]; // see handout to fill in with values from comp
+	n = vec3(Top.x, Top.y, Top.z);
+	l = length(n);
+	Top /= l;
+	planes[3] = Top;
+	cout << "Top " << Top.x << " " << Top.y << " " << Top.z << " " << Top.w << endl;
+
+	Near.x = comp[0][3] + comp[0][2]; // see handout to fill in with values from comp
+	Near.y = comp[1][3] + comp[1][2]; // see handout to fill in with values from comp
+	Near.z = comp[2][3] + comp[2][2]; // see handout to fill in with values from comp
+	Near.w = comp[3][3] + comp[3][2]; // see handout to fill in with values from comp
+	n = vec3(Near.x, Near.y, Near.z);
+	l = length(n);
+	Near /= l;
+	planes[4] = Near;
+	cout << "Near " << Near.x << " " << Near.y << " " << Near.z << " " << Near.w << endl;
+
+	Far.x = comp[0][3] - comp[0][2]; // see handout to fill in with values from comp
+	Far.y = comp[1][3] - comp[1][2]; // see handout to fill in with values from comp
+	Far.z = comp[2][3] - comp[2][2]; // see handout to fill in with values from comp
+	Far.w = comp[3][3] - comp[3][2]; // see handout to fill in with values from comp
+	n = vec3(Far.x, Far.y, Far.z);
+	l = length(n);
+	Far /= l;
+	planes[5] = Far;
+	cout << "Far " << Far.x << " " << Far.y << " " << Far.z << " " << Far.w << endl;
+}
+
+float Application::DistToPlane(float A, float B, float C, float D, vec3 point)
+{
+	return A*point.x + B*point.y + C*point.z + D;
+}
+
+/* Actual cull on planes */
+//returns 1 to CULL
+int Application::ViewFrustCull(vec3 center, float radius)
+{
+	float dist;
+
+	if (CULL)
+	{
+		cout << "testing against all planes" << endl;
+		for (int i = 0; i < 6; i++)
+		{
+			dist = DistToPlane(planes[i].x, planes[i].y, planes[i].z, planes[i].w, center);
+			//test against each plane
+			if (dist  < radius) {
+				return 1;
+			}
+
+		}
+		return 0;
+	}
+	else
+	{
+		return 0;
 	}
 }
 

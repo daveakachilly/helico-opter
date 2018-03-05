@@ -35,7 +35,7 @@ message(STATUS "=====> START GLFW <=====")
 set(GLFW_DIR "$ENV{GLFW_DIR}")
 if(GLFW_DIR)
 	message(STATUS "GLFW environment variable found")
-
+	message(STATUS "GLFW include dir found with env var 'GLFW_INCLUDE_DIR': ${GLFW_DIR}")
 	option(GLFW_BUILD_EXAMPLES "GLFW_BUILD_EXAMPLES" OFF)
 	option(GLFW_BUILD_TESTS "GLFW_BUILD_TESTS" OFF)
 	option(GLFW_BUILD_DOCS "GLFW_BUILD_DOCS" OFF)

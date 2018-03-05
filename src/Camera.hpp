@@ -38,6 +38,8 @@ public:
     void setViewMatrix(const std::shared_ptr<Program> prog) const;
     void setProjectionMatrix(const std::shared_ptr<Program> prog, float aspect) const;
     void setEyePosition(const std::shared_ptr<Program> prog) const;
+	void setOrthoMatrix(const std::shared_ptr<Program> prog, float const size) const;
+	void setTopView(const std::shared_ptr<Program> prog) const;
 };
 
 #endif /* Camera_hpp */

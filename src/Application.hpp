@@ -73,6 +73,8 @@ public:
     bool mouseDown = false;
 	int copterHealth = 3;
 	int manHealth = 3;
+	glm::vec4 planes[6];
+	int CULL = 0;
 
     WindowManager * windowManager = nullptr;
     
@@ -156,7 +158,7 @@ public:
     //Physics
     void integrate(float t, float dt);
     void render(float t,  float alpha);
-    void renderState(State& state);
+    void renderState(State& state, int renderType);
     
     void simulate(float dt);
     
@@ -185,6 +187,11 @@ public:
     void mouseCallback(GLFWwindow *window, int button, int action, int mods);
     void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
     void resizeCallback(GLFWwindow *window, int width, int height);
+
+	//Culling
+	void ExtractVFPlanes(const glm::mat4 P, const glm::mat4 V);
+	float DistToPlane(float A, float B, float C, float D, glm::vec3 point);
+	int ViewFrustCull(glm::vec3 center, float radius);
 };
 
 #endif /* Application_hpp */

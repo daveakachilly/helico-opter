@@ -70,3 +70,27 @@ void Camera::setProjectionMatrix(const std::shared_ptr<Program> prog, float aspe
 void Camera::setEyePosition(const std::shared_ptr<Program> prog) const {
     CHECKED_GL_CALL( glUniform3f(prog->getUniform("eyePosition"), player->position.x + cameraDistance, player->position.y, player->position.z) );
 }
+
+void Camera::setOrthoMatrix(const std::shared_ptr<Program> prog, float const size) const {
+	auto P = make_shared<MatrixStack>();
+	P->pushMatrix();
+	P->ortho(-size, size, -size, size, 2.1f, 100.f);
+	CHECKED_GL_CALL(glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix())));
+	P->popMatrix();
+}
+
+void Camera::setTopView(const std::shared_ptr<Program> prog) const{
+	float x = cos(radians(cameraPhi))*cos(radians(cameraTheta));
+	float y = sin(radians(cameraPhi));
+	float z = cos(radians(cameraPhi))*sin(radians(cameraTheta));
+	vec3 cameraIdentityVector = vec3(x, y, z);
+
+	auto V = make_shared<MatrixStack>();
+	V->pushMatrix();
+	V->loadIdentity();
+	V->lookAt(vec3(0.0f, 8.0f, 0.0f), cameraIdentityVector, vec3(0.0f, 1.0f, 0.0f));
+	V->translate(-1.0f * player->position); //Negative
+	CHECKED_GL_CALL(glUniformMatrix4fv(
+		prog->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix())));
+	V->popMatrix();
+}
