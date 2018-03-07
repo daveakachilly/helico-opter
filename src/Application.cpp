@@ -65,6 +65,8 @@ void Application::initMainProgram(const std::string& resourceDirectory) {
     mainProgram->addAttribute("vPosition");
     mainProgram->addAttribute("vNormal");
     mainProgram->addAttribute("vTextureCoordinates");
+	mainProgram->addAttribute("fogSelector");
+	mainProgram->addAttribute("depthFog");
 }
 
 void Application::initGroundProgram(const std::string& resourceDirectory) {
@@ -679,7 +681,8 @@ void Application::renderState(State& state) {
         vec3 directionFromLight = vec3(0.0f) - vec3(-5.0f, 20.0f, 10.0f); //from X to origin
         vec3 directionTowardsLight = -directionFromLight;
         CHECKED_GL_CALL( glUniform3f(mainProgram->getUniform("directionTowardsLight"), directionTowardsLight.x, directionTowardsLight.y, directionTowardsLight.z) );
-    
+		CHECKED_GL_CALL(glUniform1i(mainProgram->getUniform("fogSelector"), 0));
+		CHECKED_GL_CALL(glUniform1i(mainProgram->getUniform("depthFog"), 0));
 		/* PRIMARY RENDER LOOP */
         for(auto& gameObject : state.gameObjects) {
 			if (gameObject->enabled) {

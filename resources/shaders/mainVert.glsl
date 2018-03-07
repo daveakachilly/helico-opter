@@ -11,13 +11,16 @@ layout(location = 2) in vec2 vTextureCoordinates;
 out vec3 fNormal;
 out vec2 fTextureCoordinates;
 out vec3 fPosition_World;
+out vec4 viewSpace;
 
 void main()
 {
-    gl_Position = P * V * M * vec4(vPosition, 1.0); //Move position to VIEW space
+	viewSpace = V * M * vec4(vPosition, 1.0);
+    gl_Position = P * viewSpace; //Move position to VIEW space
     fNormal = (V * M * vec4(vNormal, 0.0)).xyz; //Move normal to WORLD space
     fPosition_World = vPosition; //We need world position for
     
     fTextureCoordinates = vTextureCoordinates;
+	
 }
 
