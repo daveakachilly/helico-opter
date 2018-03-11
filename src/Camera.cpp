@@ -55,11 +55,18 @@ void Camera::setHelicopterViewMatrix(const std::shared_ptr<Program> prog) {
     auto V = make_shared<MatrixStack>();
     V->pushMatrix();
     V->loadIdentity();
-        V->lookAt(vec3(0, 0, 0), identityVector, vec3(0, 1, 0));
-        V->translate((-1.0f * vec3(player->position.x, 0.0f, 0.0f) )); //Negative
-        V->translate(identityVector - offsetVector);
-        V->rotate(cameraRot, vec3(1, 0, 0));
-        //V->translate(vec3(0.0f, 0.0f, -cameraDistance));
+		if (!gameStarted) {
+			V->lookAt(vec3(0, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0));
+			V->translate(vec3(0, 0, -2));
+		}
+		else {
+			V->lookAt(vec3(0, 0, 0), identityVector, vec3(0, 1, 0));
+			V->translate((-1.0f * vec3(player->position.x, 0.0f, 0.0f) )); //Negative
+			V->translate(identityVector - offsetVector);
+			V->rotate(cameraRot, vec3(1, 0, 0));
+
+			//V->translate(vec3(0.0f, 0.0f, -cameraDistance));
+		}
         CHECKED_GL_CALL( glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix())) );
     V->popMatrix();
 

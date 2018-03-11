@@ -65,7 +65,9 @@ public:
 //Variables
     
     bool gameOver = false;
+	bool gameStart = false;
     int playerHealth = 3;
+	int menuOption = 1;
     
     double w = 0; //w is for sin wave frequency.
     
@@ -78,6 +80,7 @@ public:
     //Shader Programs
     std::shared_ptr<Program> mainProgram;
     std::shared_ptr<Program> groundProgram;
+	std::shared_ptr<Program> menuProgram;
 	std::shared_ptr<Program> sky;
     
     //Physics & Collisions
@@ -111,10 +114,16 @@ public:
     std::shared_ptr<Texture> heightmapTexture;
     std::shared_ptr<Texture> grassTexture;
     std::shared_ptr<Texture> waterTexture;
+	std::shared_ptr<Texture> menuStartTex;
+
     
     //ground plane info
     GLuint GroundBufferObject, GroundNormalBufferObject, GroundTextureBufferObject, GroundIndexBufferObject;
     int gGiboLen;
+
+	//start menu plane info
+	GLuint StBuffObj, StNorBuffObj, StTexBuffObj, StIndxBuffObj;
+	int gSiboLen;
     
 //Functions
     /* Initilizations */
@@ -126,6 +135,7 @@ public:
     void initShaders(const std::string& resourceDirectory);
     void initMainProgram(const std::string& resourceDirectory);
     void initGroundProgram(const std::string& resourceDirectory);
+	void initMenuProgram(const std::string& resourceDirectory);
 
     void initTextures(const std::string& resourceDirectory);
 	// Separate texture for water
@@ -145,6 +155,9 @@ public:
     void initQuad();
     
     void renderGround();
+
+	void initMenu();
+	void renderMenu();
 
 	//Skybox
 	GLuint vbo, vao, tex_cube;
