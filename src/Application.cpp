@@ -87,6 +87,7 @@ void Application::initGroundProgram(const std::string& resourceDirectory) {
     groundProgram->addAttribute("vertNor");
     groundProgram->addAttribute("vertTex");
     groundProgram->addUniform("Texture0");
+    groundProgram->addUniform("normal");
 }
 
 void Application::initTextures(const std::string& resourceDirectory) {
@@ -95,6 +96,12 @@ void Application::initTextures(const std::string& resourceDirectory) {
     grassTexture->init();
     grassTexture->setUnit(0);
     grassTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
+    normalTexture = make_shared<Texture>();
+    normalTexture->setFilename(resourceDirectory + "/normal.png");
+    normalTexture->init();
+    normalTexture->setUnit(0);
+    normalTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
+    normalTexture->tid = 1;
     //grassTexture->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 }
 
@@ -729,6 +736,7 @@ void Application::renderState(State& state) {
 		M->popMatrix();
 		/*draw the ground */
 		grassTexture->bind(groundProgram->getUniform("Texture0"));
+		normalTexture->bind(groundProgram->getUniform("normal"));
 		renderGround();
     groundProgram->unbind();
     
