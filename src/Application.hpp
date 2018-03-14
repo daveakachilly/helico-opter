@@ -153,7 +153,7 @@ public:
     void createBird(std::shared_ptr<Model> model, glm::vec3 position);
     void initBirds();
 	// once blimp or bird is collided/goes offscreen, give a new location
-	glm::vec3 newLocation(); 
+	glm::vec3 newLocation(float playerX); 
     
     void initQuad();
     

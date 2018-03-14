@@ -382,8 +382,8 @@ void Application::initBirds() {
 	}
 }
 
-vec3 Application::newLocation() {
-	glm::vec3 newPosition = vec3(bufferDistance, 0.0f, 0.0f);
+vec3 Application::newLocation(float playerX) {
+	glm::vec3 newPosition = vec3(bufferDistance + playerX, 0.0f, 0.0f);
 
 	if (bd_high == true) {
 		newPosition.y = highBirdY;
@@ -658,6 +658,7 @@ void Application::genEnemies(float dt) {
 		int maxBirds = std::max( int(log(10 * time)), 0);
 		int maxBlimps = int(log(5 * time));
 		//fprintf(stderr, "maxBirds: %d, maxBlimps: %d, bd: %d, bp: %d\n", maxBirds, maxBlimps, bd, bp);
+        int playerX = player->position.x;
 
 		if (!gameOver) {
 			//check for objects above/below/left/far right of camera
@@ -667,13 +668,13 @@ void Application::genEnemies(float dt) {
 					b2Vec2 curPos = birdPool.at(i)->body->GetPosition();
 					fprintf(stderr, "i = %d: curPos.x = %d, curPos.y = %d\n", i, curPos.x, curPos.y);
 
-					if (curPos.x < -10.0f || curPos.x > 260.0f || curPos.y > 20.0f || curPos.y < 0.0f) {
+					if (curPos.x < playerX-10.0f) {
 						birdPool.at(i)->enabled = false;
 						//birdPool.at(i)->body->SetAwake(false);
 						birdPool.at(i)->body->SetActive(false);
 						curBird--;
 
-						vec3 newPos = newLocation();
+						vec3 newPos = newLocation(playerX);
 						//birdPool.at(i)->position = newPos;
 						//b2Vec2 pos = b2Vec2(newPos.x, newPos.y);
 						birdPool.at(i)->body->SetTransform(b2Vec2(newPos.x, newPos.y), 0.0f);
@@ -681,6 +682,7 @@ void Application::genEnemies(float dt) {
 						float randomVelocityX = randomFloat() * -1.0f;
 						birdPool.at(i)->velocity = vec3(randomVelocityX, 0.0f, 0.0f);
 						birdPool.at(i)->body->SetLinearVelocity(b2Vec2(randomVelocityX, 0.0f));
+                        birdPool.at(i)->graphics->material = 5;
 					}
 				}
 			}
@@ -750,12 +752,14 @@ void Application::renderState(State& state) {
 				gameObject->render(mainProgram);
 			}
         }
+    /*
 		for (auto& bird : birdPool) {
 			if (bird->enabled) {
 				SetMaterial(mainProgram, bird->graphics->material);
 				bird->render(mainProgram);
 			}
 		}
+     */
 
 		// Score of birds collided
         M = make_shared<MatrixStack>();
