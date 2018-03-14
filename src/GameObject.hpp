@@ -30,6 +30,10 @@ public:
     //Variables
     b2Body *body;
     
+	std::shared_ptr<InputComponent> input;
+	std::shared_ptr<PhysicsComponent> physics;
+	std::shared_ptr<GraphicsComponent> graphics;
+
     glm::vec3 position = glm::vec3(0.0f);
     glm::vec3 velocity = glm::vec3(0.0f);
     
@@ -46,21 +50,16 @@ public:
     
 	bool enabled = true;
     
-    
     //Functions
     static std::shared_ptr<GameObject> interpolate(std::shared_ptr<GameObject> previous, std::shared_ptr<GameObject> current, float alpha);
     
     GameObject(const GameObject &gameObject); //Copy constructor
     GameObject(std::shared_ptr<InputComponent> input, std::shared_ptr<PhysicsComponent> physics, std::shared_ptr<GraphicsComponent> graphics);
     
-    void interpolate(float t, float alpha);
+    //void interpolate(float t, float alpha);
     
     void simulate(float dt);
     void render(std::shared_ptr<Program> prog);
-    
-    std::shared_ptr<InputComponent> input;
-    std::shared_ptr<PhysicsComponent> physics;
-    std::shared_ptr<GraphicsComponent> graphics;
 };
 
 #endif /* GameObject_hpp */

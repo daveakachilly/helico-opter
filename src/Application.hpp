@@ -54,13 +54,14 @@ class Application : public EventCallbacks
     
     //birds
     const float winDistance = 2000.0f;
-    const int numberOfBirds = 300;
-    const float bufferDistance = 150.0f; //don't want birds X meters from start or finish
+    const int numberOfBirds = 100;
+	const int numberOfBlimps = 50;
+    const float bufferDistance = 140.0f; //don't want birds X meters from start or finish
     //vvv (1000-30*2) = 940; 940/100 = 9.4f
     const float distancePerBird = (winDistance - bufferDistance * 2.0f) / (float) numberOfBirds;
     const float birdInitialHorizontalVelocity = -10.0f;
-    const float highBirdY = 6.0f;
-    const float lowBirdY = 3.0f;
+    const float highBirdY = 8.0f;
+    const float lowBirdY = 2.0f;
 public:
 //Variables
     
@@ -70,8 +71,18 @@ public:
     double w = 0; //w is for sin wave frequency.
     
     bool mouseDown = false;
-	int copterHealth = 3;
-	int manHealth = 3;
+
+	float time = 0;
+
+	//Object Pools
+	bool bd_high = true; //switch high & low every other bird
+	bool bp_high = true; //switch high & low every other blimp
+
+	int bd = 0; //keeps track of latest bird used in the pool
+	int bp = 0; //keeps track of latest blimp used in the pool
+
+	std::vector< std::shared_ptr<GameObject> > birdPool;
+	std::vector< std::shared_ptr<GameObject> > blimpPool;
 
     WindowManager * windowManager = nullptr;
     
@@ -129,18 +140,20 @@ public:
 
     void initTextures(const std::string& resourceDirectory);
 	// Separate texture for water
-    void initWaterTextures(const std::string& resourceDirectory);
+    //void initWaterTextures(const std::string& resourceDirectory);
 
     void initGeom(const std::string& resourceDirectory);
     
     void initPlayer(std::shared_ptr<Model> model);
     void initCamera();
     
+	// Blimps and Birds
     void createBlimp(std::shared_ptr<Model> model, glm::vec3 position);
     void initBlimps();
-    
     void createBird(std::shared_ptr<Model> model, glm::vec3 position);
     void initBirds();
+	// once blimp or bird is collided/goes offscreen, give a new location
+	glm::vec3 newLocation(); 
     
     void initQuad();
     
@@ -159,10 +172,10 @@ public:
     
     //Physics
     void integrate(float t, float dt);
+	void genEnemies(float dt);
+
     void render(float t,  float alpha);
     void renderState(State& state);
-    
-    void simulate(float dt);
     
     // helper function to set materials for shading
     static void SetMaterial(const std::shared_ptr<Program> prog, int i);
@@ -177,8 +190,6 @@ public:
     
     void setCollisionCooldown(std::shared_ptr<GameObject> gameObject);
     
-	void changeCopterHealth(int i);
-	void changeManHealth(int i);
     void gameLost();
     
     //Control Callbacks

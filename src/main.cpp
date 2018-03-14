@@ -5,7 +5,7 @@
 #include "WindowManager.h"
 
 const int windowWidth = 800;
-const int windowHeight = 420;
+const int windowHeight = 500;
 
 int main(int argc, char **argv)
 {

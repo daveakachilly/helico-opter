@@ -22,7 +22,7 @@ void Application::init(const std::string& resourceDirectory) {
     initGeom(resourceDirectory+"/models");
 	
 	initSkybox(resourceDirectory + "/shaders",
-			    resourceDirectory + "/skybox");
+			   resourceDirectory + "/skybox");
 	initQuad();
 
 	initBox2DWorld();
@@ -115,7 +115,7 @@ void Application::initGeom(const std::string& resourceDirectory) {
         sphereModel = make_shared<Model>();
         sphereModel->createModel(TOshapes, objMaterials);
     }
-    //load in the mesh and make the shapes
+    //Bird
     rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
                                (resourceDirectory + "/Bird_01.obj").c_str());
     if (!rc)
@@ -126,7 +126,7 @@ void Application::initGeom(const std::string& resourceDirectory) {
         birdModel->createModel(TOshapes, objMaterials);
         birdModel->rotate( vec3(90.0f, 180.0f, 0.0f) );
     }
-    
+    //Helicopter
     rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
                           (resourceDirectory + "/Helicopter2.obj").c_str());
     if (!rc)
@@ -138,7 +138,7 @@ void Application::initGeom(const std::string& resourceDirectory) {
         helicopterModel->rotate( vec3(0.0f, 0.0f, 0.0f) );
         helicopterModel->scale *= 2.0f;
     }
-    
+    //Blimp
     rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
                           (resourceDirectory + "/blimp/Blimp.obj").c_str());
     if (!rc)
@@ -150,6 +150,7 @@ void Application::initGeom(const std::string& resourceDirectory) {
         blimpModel->rotate( vec3(0.0f, 180.0f, 0.0f) );
         blimpModel->scale *= 4.0f;
     }
+	//Cloud
     rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
                           (resourceDirectory + "/cloud/cloud_02.obj").c_str());
     if (!rc)
@@ -262,6 +263,9 @@ void Application::createBlimp(shared_ptr<Model> model, vec3 position) {
     temporaryGameObjectPointer->body->CreateFixture(&blimpBox, density); //0.0f = density
     
     currentState->gameObjects.push_back(temporaryGameObjectPointer);
+	//temporaryGameObjectPointer->enabled = false;
+	//temporaryGameObjectPointer->body->SetAwake(false);
+	//blimpPool.push_back(temporaryGameObjectPointer);
 }
 
 void Application::initBlimps() {
@@ -276,13 +280,11 @@ void Application::initBlimps() {
     float currentX = bufferDistance;
     glm::vec3 currentPosition = vec3(bufferDistance, 0.0f, 0.0f);
     
-    int numberOfBlimps = 50;
     float distancePerBlimp = (winDistance - bufferDistance * 2.0f) / numberOfBlimps;
     
-    bool high = true; //switch high & low every other bird
     for (int i = 0; i < numberOfBlimps; i++) {
         
-        if (high == true) {
+        if (bp_high == true) {
             currentPosition.y = highBirdY;
         }
         else {
@@ -298,7 +300,7 @@ void Application::initBlimps() {
         createBlimp(blimpModel, currentPosition);
         
         currentX += distancePerBlimp; //Make next bird X meters to the right
-        high = !high; //flip high/low
+        bp_high = !bp_high; //flip high/low
     }
 }
 
@@ -339,7 +341,11 @@ void Application::createBird(shared_ptr<Model> model, vec3 position) {
 	//Create fixture directly from shape
 	temporaryGameObjectPointer->body->CreateFixture(&birdBox, density); //0.0f = density
 
+	temporaryGameObjectPointer->enabled = false;
+	//temporaryGameObjectPointer->body->SetAwake(false);
+	temporaryGameObjectPointer->body->SetActive(false);
 	currentState->gameObjects.push_back(temporaryGameObjectPointer);
+	birdPool.push_back(temporaryGameObjectPointer);
 }
 
 void Application::initBirds() {
@@ -354,11 +360,9 @@ void Application::initBirds() {
 	float currentX = bufferDistance;
 	glm::vec3 currentPosition = vec3(bufferDistance, 0.0f, 0.0f);
 
-
-	bool high = true; //switch high & low every other bird
 	for (int i = 0; i < numberOfBirds; i++) {
 
-		if (high == true) {
+		if (bd_high == true) {
 			currentPosition.y = highBirdY;
 		}
 		else {
@@ -373,9 +377,28 @@ void Application::initBirds() {
 
 		createBird(birdModel, currentPosition);
 
-		currentX += distancePerBird; //Make next bird X meters to the right
-		high = !high; //flip high/low
+		//currentX += distancePerBird; //Make next bird X meters to the right
+		bd_high = !bd_high; //flip high/low
 	}
+}
+
+vec3 Application::newLocation() {
+	glm::vec3 newPosition = vec3(bufferDistance, 0.0f, 0.0f);
+
+	if (bd_high == true) {
+		newPosition.y = highBirdY;
+	}
+	else {
+		newPosition.y = lowBirdY;
+	}
+
+	float xOffset = randomFloatNegativePossible();
+	newPosition.x += xOffset;
+	float yOffset = randomFloatNegativePossible();
+	newPosition.y += yOffset;
+
+	bd_high = !bd_high; // flip high/low for next bird
+	return newPosition;
 }
 
 /**** geometry set up for ground plane *****/
@@ -385,16 +408,6 @@ void Application::initQuad()
     //generate the VAO
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
-    //float g_groundSize = gridDistanceFromCenter;
-    //float g_groundY = gridHeight;
-    
-    // A x-z plane at y = g_groundY of dim[-g_groundSize, g_groundSize]^2
-    /*float GroundPos[] = {
-        -g_groundSize, g_groundY, -g_groundSize,
-        -g_groundSize, g_groundY,  g_groundSize,
-        g_groundSize, g_groundY,  g_groundSize,
-        g_groundSize, g_groundY, -g_groundSize
-    };*/
    
     GLfloat *GroundPos = new GLfloat[10000*18];
     
@@ -417,24 +430,7 @@ void Application::initQuad()
         0, 1, 0,
         0, 1, 0,
         0, 1, 0
-    };
-    
-    /*
-     float GroundTex[] = {
-     0, 0, // back
-     0, 1,
-     1, 1,
-     1, 0
-     }; */
-    
-    
-    /*float GroundTex[] = {
-        0, 0, // back
-        0, g_groundSize,
-        g_groundSize, g_groundSize,
-        g_groundSize, 0
-    };*/
-   
+    };   
 
     float t= 1./100.;
     int texc = 0;
@@ -646,6 +642,73 @@ void Application::integrate(float t, float dt) {
     }
 
 	currentState->integrate(t, dt);
+	genEnemies(dt);
+}
+
+void Application::genEnemies(float dt) {
+	if (camera->gameStarted) {
+		time += dt;
+
+		// count of currently drawn birds, blimps
+		int curBird = bd;
+		int curBlimp = bp;
+		bool firstEmpty = false;
+		int ind;
+
+		int maxBirds = std::max( int(log(10 * time)), 0);
+		int maxBlimps = int(log(5 * time));
+		//fprintf(stderr, "maxBirds: %d, maxBlimps: %d, bd: %d, bp: %d\n", maxBirds, maxBlimps, bd, bp);
+
+		if (!gameOver) {
+			//check for objects above/below/left/far right of camera
+			for (int i = 0; i < numberOfBirds; i++) {
+				if (birdPool.at(i)->enabled) {
+					//vec3 curPos = birdPool.at(i)->position;
+					b2Vec2 curPos = birdPool.at(i)->body->GetPosition();
+					fprintf(stderr, "i = %d: curPos.x = %d, curPos.y = %d\n", i, curPos.x, curPos.y);
+
+					if (curPos.x < -10.0f || curPos.x > 260.0f || curPos.y > 20.0f || curPos.y < 0.0f) {
+						birdPool.at(i)->enabled = false;
+						//birdPool.at(i)->body->SetAwake(false);
+						birdPool.at(i)->body->SetActive(false);
+						curBird--;
+
+						vec3 newPos = newLocation();
+						//birdPool.at(i)->position = newPos;
+						//b2Vec2 pos = b2Vec2(newPos.x, newPos.y);
+						birdPool.at(i)->body->SetTransform(b2Vec2(newPos.x, newPos.y), 0.0f);
+
+						float randomVelocityX = randomFloat() * -1.0f;
+						birdPool.at(i)->velocity = vec3(randomVelocityX, 0.0f, 0.0f);
+						birdPool.at(i)->body->SetLinearVelocity(b2Vec2(randomVelocityX, 0.0f));
+					}
+				}
+			}
+
+			/*for (int i = 0; i < numberOfBlimps; i++) {
+			if (blimpPool.at(i)->enabled)
+			curBlimp++;
+			}*/
+
+			//draw birds, blimps needed to meet maxBirds, maxBlimps
+			//check current number of birds being drawn
+			for (int i = 0; curBird <= maxBirds && i < numberOfBirds; i++) {
+				if (!birdPool.at(i)->enabled) {
+					birdPool.at(i)->enabled = true;
+					//birdPool.at(i)->body->SetAwake(true);
+					birdPool.at(i)->body->SetActive(true);
+					curBird++;
+				}
+			}
+			bd = curBird;
+			/*for (int i = y; i < ((y + (maxBlimps - curBlimp)) % numberOfBlimps); i++) {
+			blimpPool.at(i)->enabled = true;
+			blimpPool.at(i)->body->SetAwake(true);
+			bp = (bp + 1) % numberOfBlimps;
+			}*/
+		}
+	
+	}
 }
 
 void Application::render(float t, float alpha) {
@@ -681,18 +744,26 @@ void Application::renderState(State& state) {
         CHECKED_GL_CALL( glUniform3f(mainProgram->getUniform("directionTowardsLight"), directionTowardsLight.x, directionTowardsLight.y, directionTowardsLight.z) );
     
 		/* PRIMARY RENDER LOOP */
-        for(auto& gameObject : state.gameObjects) {
+        for (auto& gameObject : state.gameObjects) {
 			if (gameObject->enabled) {
 				SetMaterial(mainProgram, gameObject->graphics->material);
 				gameObject->render(mainProgram);
 			}
         }
+		for (auto& bird : birdPool) {
+			if (bird->enabled) {
+				SetMaterial(mainProgram, bird->graphics->material);
+				bird->render(mainProgram);
+			}
+		}
+
+		// Score of birds collided
         M = make_shared<MatrixStack>();
         M->pushMatrix();
         M->loadIdentity();
             vec3 first_bird_position = vec3((player->position.x) - 8.0f, -6.0f, 1.0f);
             M->translate(first_bird_position);
-            for(int i = 0 ; i < player->score; i++) {
+            for (int i = 0 ; i < player->score; i++) {
                 M->pushMatrix();
                     M->translate( glm::vec3(0.5f * i, 0.0f, 0.0f) );
                     //CHECKED_GL_CALL(glUniformMatrix4fv(mainProgram->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix())));
@@ -732,7 +803,7 @@ void Application::renderState(State& state) {
 		renderGround();
     groundProgram->unbind();
     
-	/*draw skybox*/
+	//draw skybox
 	glDepthMask(GL_FALSE);
 	sky->bind();
 		camera->setHelicopterSkyViewMatrix(sky);
@@ -783,7 +854,7 @@ void Application::SetMaterial(const std::shared_ptr<Program> prog, int i)
             glUniform3f(prog->getUniform("mAmbientCoefficient"), 0.0913f, 0.1735f, 0.1225f);
             glUniform3f(prog->getUniform("mDiffusionCoefficient"), 0.438f, 0.4048f, 0.428f);
             break;
-		case 7:
+		case 7: //ruby
 			glUniform3f(prog->getUniform("mAmbientCoefficient"), 0.17f, 0.01f, 0.01f);
 			glUniform3f(prog->getUniform("mDiffusionCoefficient"), 0.61f, 0.04f, 0.04f);
 			break;
@@ -840,46 +911,11 @@ void Application::setCollisionCooldown(shared_ptr<GameObject> gameObject) {
     gameObject->collisionCooldown = 3.0f; //3 seconds
 }
 
-void Application::changeCopterHealth(int i) {
-	copterHealth += i;
-
-	switch (copterHealth) {
-	case 2:
-		player->graphics->material = 0;
-		break;
-	case 1:
-		copterHealthObjs[1]->enabled = false;
-		player->graphics->material = 6;
-		break;
-	case 0:
-		copterHealthObjs[0]->enabled = false;
-		player->graphics->material = 5;
-		gameLost();
-		break;
-	}
-}
-
-void Application::changeManHealth(int i) {
-	manHealth += i;
-
-	switch (manHealth) {
-	case 2:
-		player->graphics->material = 0;
-		break;
-	case 1:
-		player->graphics->material = 6;
-		break;
-	case 0:
-		player->graphics->material = 5;
-		gameLost();
-		break;
-	}
-}
-
 void Application::gameLost() {
     for(int i = 0; i < 10; i ++)
         printf("GAME OVER!\n");
     gameOver = true;
+	
 }
 
 void Application::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
