@@ -18,7 +18,7 @@ void main() {
     //w/50 lets the normal walk. 
     vec3 normal = texture(normal, fragTex+w/50).rgb;
     //light position
-    vec3 lp = vec3(100,100,100);
+    vec3 lp = vec3(-100,-100,100);
     //position of wave. 
     vec3 pos = tpos.xyz;
     //light direction
