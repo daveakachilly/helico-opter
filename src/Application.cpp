@@ -342,8 +342,8 @@ void Application::createBird(shared_ptr<Model> model, vec3 position) {
 	temporaryGameObjectPointer->body->CreateFixture(&birdBox, density); //0.0f = density
 
 	temporaryGameObjectPointer->enabled = false;
-	//temporaryGameObjectPointer->body->SetAwake(false);
 	temporaryGameObjectPointer->body->SetActive(false);
+
 	currentState->gameObjects.push_back(temporaryGameObjectPointer);
 	birdPool.push_back(temporaryGameObjectPointer);
 }
@@ -377,7 +377,6 @@ void Application::initBirds() {
 
 		createBird(birdModel, currentPosition);
 
-		//currentX += distancePerBird; //Make next bird X meters to the right
 		bd_high = !bd_high; //flip high/low
 	}
 }
@@ -652,35 +651,29 @@ void Application::genEnemies(float dt) {
 		// count of currently drawn birds, blimps
 		int curBird = bd;
 		int curBlimp = bp;
-		bool firstEmpty = false;
-		int ind;
 
 		int maxBirds = std::max( int(log(10 * time)), 0);
 		int maxBlimps = int(log(5 * time));
-		//fprintf(stderr, "maxBirds: %d, maxBlimps: %d, bd: %d, bp: %d\n", maxBirds, maxBlimps, bd, bp);
+		fprintf(stderr, "maxBirds: %d, maxBlimps: %d, bd: %d, bp: %d\n", maxBirds, maxBlimps, bd, bp);
         int playerX = player->position.x;
 
 		if (!gameOver) {
-			//check for objects above/below/left/far right of camera
+			//check for objects above/below/left of camera
 			for (int i = 0; i < numberOfBirds; i++) {
 				if (birdPool.at(i)->enabled) {
-					//vec3 curPos = birdPool.at(i)->position;
 					b2Vec2 curPos = birdPool.at(i)->body->GetPosition();
-					fprintf(stderr, "i = %d: curPos.x = %d, curPos.y = %d\n", i, curPos.x, curPos.y);
 
 					if (curPos.x < playerX-10.0f) {
 						birdPool.at(i)->enabled = false;
-						//birdPool.at(i)->body->SetAwake(false);
 						birdPool.at(i)->body->SetActive(false);
 						curBird--;
 
+						//reset location
 						vec3 newPos = newLocation(playerX);
-						//birdPool.at(i)->position = newPos;
-						//b2Vec2 pos = b2Vec2(newPos.x, newPos.y);
 						birdPool.at(i)->body->SetTransform(b2Vec2(newPos.x, newPos.y), 0.0f);
 
+						//reset velocity
 						float randomVelocityX = randomFloat() * -1.0f;
-						birdPool.at(i)->velocity = vec3(randomVelocityX, 0.0f, 0.0f);
 						birdPool.at(i)->body->SetLinearVelocity(b2Vec2(randomVelocityX, 0.0f));
                         birdPool.at(i)->graphics->material = 5;
 					}
@@ -688,8 +681,8 @@ void Application::genEnemies(float dt) {
 			}
 
 			/*for (int i = 0; i < numberOfBlimps; i++) {
-			if (blimpPool.at(i)->enabled)
-			curBlimp++;
+				if (blimpPool.at(i)->enabled)
+					curBlimp++;
 			}*/
 
 			//draw birds, blimps needed to meet maxBirds, maxBlimps
@@ -697,7 +690,6 @@ void Application::genEnemies(float dt) {
 			for (int i = 0; curBird <= maxBirds && i < numberOfBirds; i++) {
 				if (!birdPool.at(i)->enabled) {
 					birdPool.at(i)->enabled = true;
-					//birdPool.at(i)->body->SetAwake(true);
 					birdPool.at(i)->body->SetActive(true);
 					curBird++;
 				}
