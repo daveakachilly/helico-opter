@@ -21,6 +21,7 @@ public:
 	void unbind();
 	void setWrapModes(GLint wrapS, GLint wrapT); // Must be called after init()
 	GLint getID() const { return tid; }
+	GLuint tid = 0;
     int getWidth() const { return width; }
     int getHeight() const { return height; }
 
@@ -29,7 +30,6 @@ private:
 	std::string filename;
 	int width = 0;
 	int height = 0;
-	GLuint tid = 0;
 	GLint unit = 0;
 
 };

@@ -122,6 +122,7 @@ public:
     std::shared_ptr<Texture> heightmapTexture;
     std::shared_ptr<Texture> grassTexture;
     std::shared_ptr<Texture> waterTexture;
+    std::shared_ptr<Texture> normalTexture;
     
     //ground plane info
     GLuint GroundBufferObject, GroundNormalBufferObject, GroundTextureBufferObject, GroundIndexBufferObject;
