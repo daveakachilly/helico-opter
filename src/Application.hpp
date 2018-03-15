@@ -79,6 +79,19 @@ public:
     std::shared_ptr<Program> mainProgram;
     std::shared_ptr<Program> groundProgram;
 	std::shared_ptr<Program> sky;
+    //Shadows stuff: 
+    std::shared_ptr<Program> depthProgram;
+    std::shared_ptr<Program> depthProgramDebug;
+    std::shared_ptr<Program> shadowProgram;
+    std::shared_ptr<Program> shadowProgramDebug;
+    bool SHOW_LIGHT_COLOR = false;
+    bool SHOW_LIGHT_DEPTH = false;
+    GLuint ShadowMapFBO;
+    const GLuint ShadowMapWidth = 1024, ShadowMapHeight = 1024;
+    GLuint ShadowMapDepthTexture;
+    glm::vec3 g_light = glm::vec3(1,1,1);
+    GLuint QuadVertexArray;
+    GLuint QuadVertexBuffer;
     
     //Physics & Collisions
     //at global scope
