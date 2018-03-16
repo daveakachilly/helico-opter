@@ -65,8 +65,8 @@ void Application::initMainProgram(const std::string& resourceDirectory) {
     mainProgram->addAttribute("vPosition");
     mainProgram->addAttribute("vNormal");
     mainProgram->addAttribute("vTextureCoordinates");
-	mainProgram->addAttribute("fogSelector");
-	mainProgram->addAttribute("depthFog");
+	mainProgram->addUniform("fogSelector");
+	mainProgram->addUniform("depthFog");
 }
 
 void Application::initGroundProgram(const std::string& resourceDirectory) {
@@ -89,6 +89,8 @@ void Application::initGroundProgram(const std::string& resourceDirectory) {
     groundProgram->addAttribute("vertNor");
     groundProgram->addAttribute("vertTex");
     groundProgram->addUniform("Texture0");
+	groundProgram->addUniform("fogSelector");
+	groundProgram->addUniform("depthFog");
 }
 
 void Application::initTextures(const std::string& resourceDirectory) {
@@ -514,6 +516,8 @@ void Application::initSkybox(const std::string& resourceDirectory,
 	sky->addUniform("V");
 	sky->addUniform("cube_texture");
 	sky->addAttribute("vp");
+	sky->addUniform("fogSelector");
+	sky->addUniform("depthFog");
 
 	float points[] = {
 		-70.0f,  70.0f, -70.0f,
@@ -681,7 +685,7 @@ void Application::renderState(State& state) {
         vec3 directionFromLight = vec3(0.0f) - vec3(-5.0f, 20.0f, 10.0f); //from X to origin
         vec3 directionTowardsLight = -directionFromLight;
         CHECKED_GL_CALL( glUniform3f(mainProgram->getUniform("directionTowardsLight"), directionTowardsLight.x, directionTowardsLight.y, directionTowardsLight.z) );
-		CHECKED_GL_CALL(glUniform1i(mainProgram->getUniform("fogSelector"), 0));
+		CHECKED_GL_CALL(glUniform1i(mainProgram->getUniform("fogSelector"), 1));
 		CHECKED_GL_CALL(glUniform1i(mainProgram->getUniform("depthFog"), 0));
 		/* PRIMARY RENDER LOOP */
         for(auto& gameObject : state.gameObjects) {
@@ -717,6 +721,8 @@ void Application::renderState(State& state) {
 		w = glfwGetTime()/10;
 		CHECKED_GL_CALL(glUniform2fv(groundProgram->getUniform("offset"), 1, &offset[0]));
 		CHECKED_GL_CALL(glUniform1f(groundProgram->getUniform("w"), w));
+		CHECKED_GL_CALL(glUniform1i(groundProgram->getUniform("fogSelector"), 1));
+		CHECKED_GL_CALL(glUniform1i(groundProgram->getUniform("depthFog"), 0));
         M = make_shared<MatrixStack>();
 		M->pushMatrix();
 			M->loadIdentity();
@@ -741,7 +747,8 @@ void Application::renderState(State& state) {
 		camera->setHelicopterSkyViewMatrix(sky);
 		camera->setProjectionMatrix(sky, aspect);
 		CHECKED_GL_CALL(glUniform1i(sky->getUniform("cube_texture"), 0));
-
+		CHECKED_GL_CALL(glUniform1i(sky->getUniform("fogSelector"), 1));
+		CHECKED_GL_CALL(glUniform1i(sky->getUniform("depthFog"), 0));
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, tex_cube);
 		glBindVertexArray(vao);

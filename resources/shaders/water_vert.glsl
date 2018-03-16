@@ -11,7 +11,7 @@ uniform float w;
 
 out vec3 fragNor;
 out vec2 fragTex;
-
+out vec4 viewSpace;
 
 uniform sampler2D tex;
 const float amplitude = 0.4f;
@@ -32,7 +32,7 @@ void main()
     //tpos.z += amplitude*sin(dot(direction, vec2(tpos.x, tpos.z))*phi + w*phase*10);
     //tpos.yz += offset;
     
-    
+    viewSpace = V * M * tpos;
     gl_Position = P * V * M * tpos;
     
     //fragNor = (M * vec4(vertNor, 0.0)).xyz;
