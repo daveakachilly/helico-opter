@@ -661,7 +661,7 @@ void Application::genEnemies(float dt) {
 
 		int maxBirds = std::max( int(log(10 * time)), 0);
 		int maxBlimps = int(log(5 * time));
-		fprintf(stderr, "maxBirds: %d, maxBlimps: %d, bd: %d, bp: %d\n", maxBirds, maxBlimps, bd, bp);
+		//fprintf(stderr, "maxBirds: %d, maxBlimps: %d, bd: %d, bp: %d\n", maxBirds, maxBlimps, bd, bp);
         int playerX = player->position.x;
 
 		if (!gameOver) {
