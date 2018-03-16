@@ -882,7 +882,7 @@ void Application::renderState(State& state) {
 			//M->translate(glm::vec3(0.0f, 0.0f, 0.0f));
 			//M->translate(glm::vec3(player->position.x+20.0f, 0.0f, 0.0f));
     
-			M->translate(glm::vec3(player->position.x-40.0f, -10.0f, -20.0f));
+			M->translate(glm::vec3(player->position.x-40.0f, -4.3f, -20.0f));
 			M->scale(glm::vec3(1.0f, 1.0f, 1.0f));
 			M->rotate(1.5, glm::vec3(1.0f, 0.0f, 0.0f));
 			//M->scale(glm::vec3(15.0f, 15.0f, 15.0f));
