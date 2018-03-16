@@ -42,6 +42,7 @@
 #include "DDS_Loader.hpp"
 
 #include "Box2D/Box2D.h"
+#include "B2Draw_OpenGL.hpp"
 
 class Application : public EventCallbacks
 {
@@ -88,12 +89,14 @@ public:
     
     //Shader Programs
     std::shared_ptr<Program> mainProgram;
+    std::shared_ptr<Program> simpleProgram;
     std::shared_ptr<Program> groundProgram;
 	std::shared_ptr<Program> sky;
     
     //Physics & Collisions
     //at global scope
     std::shared_ptr<b2World> world;
+    std::shared_ptr<B2Draw_OpenGL> debugDraw;
     
     //State
     std::shared_ptr<State> currentState;
@@ -102,6 +105,10 @@ public:
     std::shared_ptr<Camera> camera;
     
     std::shared_ptr<GameObject> player;
+    std::shared_ptr<GameObject> ladderMan;
+    b2Vec2 ropeAnchorPlayer;
+    b2Vec2 ropeAnchorPirate;
+    
 	std::shared_ptr<GameObject> copterHealthObjs[5];
 	std::shared_ptr<PlayerInputComponent> playerInputComponent;
     std::shared_ptr<GameObject> temporaryGameObjectPointer;
@@ -112,6 +119,7 @@ public:
     std::shared_ptr<Model> helicopterModel;
     std::shared_ptr<Model> blimpModel;
     std::shared_ptr<Model> cloudModel;
+    std::shared_ptr<Model> pirateModel;
     
     std::vector< std::shared_ptr<Model> > models;
     
@@ -137,6 +145,7 @@ public:
     
     void initShaders(const std::string& resourceDirectory);
     void initMainProgram(const std::string& resourceDirectory);
+    void initSimpleProgram(const std::string& resourceDirectory);
     void initGroundProgram(const std::string& resourceDirectory);
 
     void initTextures(const std::string& resourceDirectory);
@@ -145,7 +154,10 @@ public:
 
     void initGeom(const std::string& resourceDirectory);
     
+    b2Body* createBodyFromModel(std::shared_ptr<Model> model, float mass, glm::vec2 position, char const* name);
     void initPlayer(std::shared_ptr<Model> model);
+    void initRope();
+    void initLadderMan(std::shared_ptr<Model> model);
     void initCamera();
     
 	// Blimps and Birds
