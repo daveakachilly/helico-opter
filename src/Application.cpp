@@ -61,7 +61,7 @@ void Application::initMainProgram(const std::string& resourceDirectory) {
     mainProgram->addUniform("mSpecularAlpha");
     mainProgram->addUniform("eyePosition");
     mainProgram->addUniform("directionTowardsLight");
-    //mainProgram->addUniform("Texture0");
+    mainProgram->addUniform("Texture0");
     mainProgram->addAttribute("vPosition");
     mainProgram->addAttribute("vNormal");
     mainProgram->addAttribute("vTextureCoordinates");
@@ -100,6 +100,12 @@ void Application::initTextures(const std::string& resourceDirectory) {
     grassTexture->setUnit(0);
     grassTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
     //grassTexture->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	fogTexture = make_shared<Texture>();
+	fogTexture->setFilename(resourceDirectory + "/fog.jpg");
+	fogTexture->init();
+	fogTexture->setUnit(0);
+	fogTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
 }
 
 void Application::initGeom(const std::string& resourceDirectory) {
@@ -687,6 +693,7 @@ void Application::renderState(State& state) {
         CHECKED_GL_CALL( glUniform3f(mainProgram->getUniform("directionTowardsLight"), directionTowardsLight.x, directionTowardsLight.y, directionTowardsLight.z) );
 		CHECKED_GL_CALL(glUniform1i(mainProgram->getUniform("fogSelector"), 1));
 		CHECKED_GL_CALL(glUniform1i(mainProgram->getUniform("depthFog"), 0));
+		fogTexture->bind(mainProgram->getUniform("Texture0"));
 		/* PRIMARY RENDER LOOP */
         for(auto& gameObject : state.gameObjects) {
 			if (gameObject->enabled) {

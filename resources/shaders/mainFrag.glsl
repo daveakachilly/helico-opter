@@ -8,7 +8,7 @@ in vec4 viewSpace;
 //to send the color to a frame buffer
 layout(location = 0) out vec4 color;
 
-//uniform sampler2D Texture0;
+uniform sampler2D Texture0;
 
 uniform vec3 eyePosition;
 uniform vec3 directionTowardsLight;
@@ -71,9 +71,9 @@ void main()
 		fogFactor = clamp( fogFactor, 0.0, 1.0 );
 		mixedColor = mix(fogColor, lightColor, fogFactor);
 	}
-
-    color = vec4(mixedColor, 1.0);
+	vec4 fog_tex = texture(Texture0, fTextureCoordinates);
+    color = mix(vec4(lightColor, 1.0), fog_tex, 0.75);
     //color = vec4(fNormal, 1.0);
-    //vec4 textureColor = texture(Texture0, fTextureCoordinates);
+    vec4 textureColor = texture(Texture0, fTextureCoordinates);
     //color = 0.5 * (color+textureColor);
 }
