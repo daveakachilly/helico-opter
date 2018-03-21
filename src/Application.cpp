@@ -537,9 +537,9 @@ void Application::render(float t, float alpha) {
 	CHECKED_GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	CHECKED_GL_CALL(glDisable(GL_CULL_FACE)); //default, two-sided rendering
 	mainProgram->bind();
-    //renderState(*currentState.get(), 0);
+    renderState(*currentState.get(), 0);
 	CHECKED_GL_CALL(glClear(GL_DEPTH_BUFFER_BIT));
-	renderState(*currentState.get(), 1);
+	//renderState(*currentState.get(), 1);
 	mainProgram->unbind();
 }
 
@@ -556,10 +556,12 @@ void Application::renderState(State& state, int renderType) {
 	float x = cos(radians(cameraPhi))*cos(radians(cameraTheta));
 	float y = sin(radians(cameraPhi));
 	float z = cos(radians(cameraPhi))*sin(radians(cameraTheta));
-	vec3 cameraIdentityVector = vec3(x, y, z);
+	vec3 identityVector = vec3(0.0f) - vec3(x, y, z); //from origin to xyz
 
-	mat4 V = lookAt(vec3(0.0f, 8.0f, 0.0f), cameraIdentityVector, vec3(0.0f, 1.0f, 0.0f));
+	vec3 offsetVector = vec3(10.0f, 0.0f, 0.0f);
+	mat4 V = lookAt(vec3(0.0f, 8.0f, 0.0f), identityVector, vec3(0.0f, 1.0f, 0.0f));
 	V = translate(V, -1.0f * camera->player->position);
+	V = translate(V, identityVector - offsetVector);
 	ExtractVFPlanes(P, V);
 	CULL = 1;
 		camera->setModelIdentityMatrix(mainProgram);
@@ -582,7 +584,7 @@ void Application::renderState(State& state, int renderType) {
 		/* PRIMARY RENDER LOOP */
 		for (auto& gameObject : state.gameObjects) {
 			if (gameObject->enabled) {
-				if (!ViewFrustCull(gameObject->position, -1.0)) {
+				if (!ViewFrustCull(gameObject->position, -15.0)) {
 					SetMaterial(mainProgram, gameObject->graphics->material);
 					gameObject->render(mainProgram);
 				}
