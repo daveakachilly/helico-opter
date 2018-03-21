@@ -16,11 +16,11 @@ using namespace glm;
 void Application::init(const std::string& resourceDirectory) {
 	currentState = make_shared<State>();
 	previousState = make_shared<State>();
-	
-	initShaders(resourceDirectory+"/shaders");
+
+	initShaders(resourceDirectory+"/shaders/");
     initTextures(resourceDirectory+"/models");
     initGeom(resourceDirectory+"/models");
-	
+
 	initSkybox(resourceDirectory + "/shaders",
 			    resourceDirectory + "/skybox");
 	initQuad();
@@ -36,7 +36,7 @@ void Application::initShaders(const std::string& resourceDirectory)
     GLSL::checkVersion();
     glClearColor(.5f, .5f, .5f, 1.0f); // Set background color.
     glEnable(GL_DEPTH_TEST); // Enable z-buffer test.
-    
+
     initMainProgram(resourceDirectory);
     initGroundProgram(resourceDirectory);
 }
@@ -47,7 +47,7 @@ void Application::initMainProgram(const std::string& resourceDirectory) {
     mainProgram->setVerbose(true);
     mainProgram->setShaderNames(resourceDirectory + "/mainVert.glsl",
                                 resourceDirectory + "/mainFrag.glsl");
-    
+
     if (! mainProgram->init()) {
         std::cerr << "One or more shaders failed to compile... exiting!" << std::endl;
         exit(1);
@@ -88,6 +88,105 @@ void Application::initGroundProgram(const std::string& resourceDirectory) {
     groundProgram->addAttribute("vertTex");
     groundProgram->addUniform("Texture0");
     groundProgram->addUniform("normal");
+	 //shadows stuff
+	 DepthProg = make_shared<Program>();
+    DepthProg->setVerbose(true);
+    DepthProg->setShaderNames(resourceDirectory + "depth_vert.glsl", resourceDirectory + "depth_frag.glsl");
+    DepthProg->init();
+
+    DepthProgDebug = make_shared<Program>();
+    DepthProgDebug->setVerbose(true);
+    DepthProgDebug->setShaderNames(resourceDirectory + "depth_vertDebug.glsl", resourceDirectory + "depth_fragDebug.glsl");
+    DepthProgDebug->init();
+
+    ShadowProg = make_shared<Program>();
+    ShadowProg->setVerbose(true);
+    ShadowProg->setShaderNames(resourceDirectory + "shadow_vert.glsl", resourceDirectory + "shadow_frag.glsl");
+    ShadowProg->init();
+
+    DebugProg = make_shared<Program>();
+    DebugProg->setVerbose(true);
+    DebugProg->setShaderNames(resourceDirectory + "pass_vert.glsl", resourceDirectory + "pass_texfrag.glsl");
+    DebugProg->init();
+
+}
+void Application::SetShadowProjectionMatrix(std::shared_ptr<Program> curShade)
+{
+	  //int width, height;
+	  //float aspect = w / (float) h;
+	  mat4 Projection = perspective(radians(50.0f), 0.6f, 0.1f, 100.0f);
+	  CHECKED_GL_CALL(glUniformMatrix4fv(curShade->getUniform("P"), 1, GL_FALSE, value_ptr(Projection)));
+}
+
+        /* TODO fix */
+glm::mat4 Application::SetOrthoMatrix(std::shared_ptr<Program> curShade)
+{
+                const float shadowSize = 10.f;
+                mat4 ortho = glm::ortho(-shadowSize, shadowSize, -shadowSize, shadowSize, 0.1f, 30.0f);
+
+                // fill in the glUniform call to send to the right shader!
+                glUniformMatrix4fv(curShade->getUniform("LP"), 1, GL_FALSE, value_ptr(ortho));
+                return ortho;
+}
+
+        /* camera controls - do not change */
+void Application::SetView(std::shared_ptr<Program> curShade)
+        {
+			  		 vec3 cameraPos = vec3(10.f, 10.f, 10.f);
+					 vec3 cameraLookAt = cameraPos + vec3(1.0f, 0, 5.0f);
+                mat4 Cam = glm::lookAt(cameraPos, cameraLookAt, vec3(0, 1, 0));
+                CHECKED_GL_CALL(glUniformMatrix4fv(curShade->getUniform("V"), 1, GL_FALSE, value_ptr(Cam)));
+        }
+
+        /* TODO fix */
+mat4 Application::SetLightView(std::shared_ptr<Program> curShade, vec3 pos, vec3 LA, vec3 up)
+        {
+                mat4 Cam = glm::lookAt(pos, LA, vec3(0,1,0));
+                CHECKED_GL_CALL(glUniformMatrix4fv(curShade->getUniform("LV"), 1, GL_FALSE, value_ptr(Cam)));
+
+                // fill in the glUniform call to send to the right shader!
+
+                return Cam;
+        }
+
+        /* model transforms */
+        void Application::SetModel(vec3 trans, float rotY, float rotX, float sc, std::shared_ptr<Program> curS)
+        {
+                mat4 Trans = glm::translate(glm::mat4(1.0f), trans);
+                mat4 ctm = Trans;
+                CHECKED_GL_CALL(glUniformMatrix4fv(curS->getUniform("M"), 1, GL_FALSE, value_ptr(ctm)));
+        }
+
+        void Application::SetModel(mat4 ctm, std::shared_ptr<Program> curS)
+        {
+                CHECKED_GL_CALL(glUniformMatrix4fv(curS->getUniform("M"), 1, GL_FALSE, value_ptr(ctm)));
+        }
+glm::mat4 Application::render_ShadowMap()
+{
+		                  mat4 L;
+
+		                  // set up light's depth map
+		                  glViewport(0, 0, 1024, 1024);
+		                  glBindFramebuffer(GL_FRAMEBUFFER, ShadowMapFBO);
+		                  glClear(GL_DEPTH_BUFFER_BIT);
+		                  glCullFace(GL_FRONT);
+
+		                  // set up shadow shader
+		                  // render scene
+		                  DepthProg->bind();
+
+		                  // TODO you will need to fix these to return correct matrices
+		                  mat4 LO = SetOrthoMatrix(DepthProg);
+		                  mat4 LV = SetLightView(DepthProg, g_light, vec3(0, 0, 0), vec3(0, 1, 0));
+		                  //drawScene(DepthProg, 0, 0);
+		                  DepthProg->unbind();
+		                  glCullFace(GL_BACK);
+
+		                  L = LO * LV;
+
+		                  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		                  return L;
 }
 
 void Application::initTextures(const std::string& resourceDirectory) {
@@ -102,6 +201,36 @@ void Application::initTextures(const std::string& resourceDirectory) {
     normalTexture->setUnit(0);
     normalTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
     normalTexture->tid = 1;
+	 DepthProg->addUniform("LP");
+                DepthProg->addUniform("LV");
+                DepthProg->addUniform("M");
+                DepthProg->addAttribute("vertPos");
+                // un-needed, but easier then modifying shape
+                DepthProg->addAttribute("vertNor");
+                DepthProg->addAttribute("vertTex");
+
+                DepthProgDebug->addUniform("LP");
+                DepthProgDebug->addUniform("LV");
+                DepthProgDebug->addUniform("M");
+                DepthProgDebug->addAttribute("vertPos");
+                // un-needed, but easier then modifying shape
+                DepthProgDebug->addAttribute("vertNor");
+                DepthProgDebug->addAttribute("vertTex");
+                DepthProgDebug->addUniform("Texture0");
+
+                ShadowProg->addUniform("P");
+                ShadowProg->addUniform("M");
+                ShadowProg->addUniform("V");
+                ShadowProg->addUniform("LS");
+                ShadowProg->addUniform("lightDir");
+                ShadowProg->addAttribute("vertPos");
+                ShadowProg->addAttribute("vertNor");
+                ShadowProg->addAttribute("vertTex");
+                ShadowProg->addUniform("Texture0");
+                ShadowProg->addUniform("shadowDepth");
+
+                DebugProg->addUniform("texBuf");
+                DebugProg->addAttribute("vertPos");
     //grassTexture->setWrapModes(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 }
 
@@ -109,9 +238,9 @@ void Application::initGeom(const std::string& resourceDirectory) {
     // this is the tiny obj shapes - not to be confused with our shapes
     vector<tinyobj::shape_t> TOshapes;
     vector<tinyobj::material_t> objMaterials;
-    
+
     string errStr;
-    
+
     //load in the mesh and make the shapes
     bool rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
                                (resourceDirectory + "/sphere.obj").c_str());
@@ -133,7 +262,7 @@ void Application::initGeom(const std::string& resourceDirectory) {
         birdModel->createModel(TOshapes, objMaterials);
         birdModel->rotate( vec3(90.0f, 180.0f, 0.0f) );
     }
-    
+
     rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
                           (resourceDirectory + "/Helicopter2.obj").c_str());
     if (!rc)
@@ -145,7 +274,7 @@ void Application::initGeom(const std::string& resourceDirectory) {
         helicopterModel->rotate( vec3(0.0f, 0.0f, 0.0f) );
         helicopterModel->scale *= 2.0f;
     }
-    
+
     rc = tinyobj::LoadObj(TOshapes, objMaterials, errStr,
                           (resourceDirectory + "/blimp/Blimp.obj").c_str());
     if (!rc)
@@ -186,17 +315,17 @@ void Application::initEntities() {
 void Application::initPlayer(shared_ptr<Model> model) {
     shared_ptr<PlayerInputComponent> input = make_shared<PlayerInputComponent> ();
     inputComponents.push_back(input);
-    
+
     shared_ptr<PlayerGraphicsComponent> graphics = make_shared<PlayerGraphicsComponent> ();
     graphicsComponents.push_back(graphics);
     graphics->models.push_back(model);
-        
+
     shared_ptr<PlayerPhysicsComponent> physics = make_shared<PlayerPhysicsComponent> ();
     physicsComponents.push_back(physics);
-    
+
     playerInputComponent = input;
     player = make_shared<GameObject>(input, physics, graphics);
-    
+
 	b2BodyDef playerBodyDefinition;
 	playerBodyDefinition.position.Set(0.0f, 0.0f);
 	playerBodyDefinition.type = b2_dynamicBody;
@@ -210,16 +339,16 @@ void Application::initPlayer(shared_ptr<Model> model) {
     float mass = 1000.0f; //kilogram
     float area = width * height;
     float density = mass / area;
-    
+
     float xOffset = model->translation.x * model->scale;
     float yOffset = model->translation.y * model->scale;
-    
+
     playerBox.SetAsBox(width / 2.0f, height / 2.0f, b2Vec2(xOffset, yOffset), 0);
-    
+
 	//Create fixture directly from shape
 	player->body->CreateFixture(&playerBox, density);
 	player->body->SetLinearVelocity(b2Vec2(15.0f, 0.0f));
-    
+
     currentState->gameObjects.push_back(player);
 }
 
@@ -231,27 +360,27 @@ void Application::initCamera() {
 void Application::createBlimp(shared_ptr<Model> model, vec3 position) {
     shared_ptr<DefaultInputComponent> input = make_shared<DefaultInputComponent>();
     inputComponents.push_back(input);
-    
+
     shared_ptr<DefaultPhysicsComponent> physics = make_shared<DefaultPhysicsComponent>();
     physicsComponents.push_back(physics);
-    
+
     shared_ptr<DefaultGraphicsComponent> graphics = make_shared<DefaultGraphicsComponent>();
     graphicsComponents.push_back(graphics);
     graphics->models.push_back(model); //Give this graphics component model
     graphics->material = 2;
     //Todo: Give constructor to graphics for models.
-    
+
     temporaryGameObjectPointer = make_shared<GameObject>(input, physics, graphics);
     temporaryGameObjectPointer->position = position;
     float randomVelocityX = randomFloat() * -1.0f;
     temporaryGameObjectPointer->velocity += randomVelocityX;
-    
+
     b2BodyDef blimpBodyDefinition;
     blimpBodyDefinition.position.Set(position.x, position.y); //set position from param
     blimpBodyDefinition.type = b2_dynamicBody;
     blimpBodyDefinition.userData = (void *) "blimp";
     temporaryGameObjectPointer->body = world->CreateBody(&blimpBodyDefinition);
-    
+
     b2PolygonShape blimpBox;
     //The extents are the half-widths of the box. (distance from center to edge)
     //playerBox.SetAsBox(width / 2.0f, height / 2.0f);
@@ -260,14 +389,14 @@ void Application::createBlimp(shared_ptr<Model> model, vec3 position) {
     float mass = 50.0f; //kilogram
     float area = width * height;
     float density = mass / area;
-    
+
     float xOffset = model->translation.x * model->scale;
     float yOffset = model->translation.y * model->scale;
-    
+
     blimpBox.SetAsBox(width / 2.0f, height / 2.0f, b2Vec2(-xOffset, yOffset), 0);
     //Create fixture directly from shape
     temporaryGameObjectPointer->body->CreateFixture(&blimpBox, density); //0.0f = density
-    
+
     currentState->gameObjects.push_back(temporaryGameObjectPointer);
 }
 
@@ -282,13 +411,13 @@ void Application::initBlimps() {
      */
     float currentX = bufferDistance;
     glm::vec3 currentPosition = vec3(bufferDistance, 0.0f, 0.0f);
-    
+
     int numberOfBlimps = 50;
     float distancePerBlimp = (winDistance - bufferDistance * 2.0f) / numberOfBlimps;
-    
+
     bool high = true; //switch high & low every other bird
     for (int i = 0; i < numberOfBlimps; i++) {
-        
+
         if (high == true) {
             currentPosition.y = highBirdY;
         }
@@ -296,14 +425,14 @@ void Application::initBlimps() {
             currentPosition.y = lowBirdY;
         }
         currentPosition.x = currentX;
-        
+
         float xOffset = randomFloatNegativePossible() * (distancePerBird / 0.4f);
         currentPosition.x += xOffset;
         float yOffset = randomFloatNegativePossible() * ((highBirdY - lowBirdY) / 4.0f);
         currentPosition.y += yOffset;
-        
+
         createBlimp(blimpModel, currentPosition);
-        
+
         currentX += distancePerBlimp; //Make next bird X meters to the right
         high = !high; //flip high/low
     }
@@ -389,12 +518,50 @@ void Application::initBirds() {
 void Application::initQuad()
 {
     GLuint VertexArrayID;
+    glGenVertexArrays(1, &QuadVertexArray);
+    glBindVertexArray(QuadVertexArray);
+    const GLfloat g_quad_vertex_buffer_data[] =
+    {
+    	-1.0f, -1.0f, 0.0f,
+	    1.0f, -1.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f,
+         1.0f, -1.0f, 0.0f,
+         1.0f,  1.0f, 0.0f,
+    };
+    glGenBuffers(1, &QuadVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, QuadVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+    glBindVertexArray(0);
+	 // generate the FBO for the shadow depth
+   glGenFramebuffers(1, &ShadowMapFBO);
+
+                // generate the texture
+   glGenTextures(1, &ShadowMapDepthTexture);
+   glBindTexture(GL_TEXTURE_2D, ShadowMapDepthTexture);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, ShadowMapWidth, ShadowMapHeight,
+                        0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+                // bind with framebuffer's depth buffer
+   glBindFramebuffer(GL_FRAMEBUFFER, ShadowMapFBO);
+   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, ShadowMapDepthTexture, 0);
+   glDrawBuffer(GL_NONE);
+   glReadBuffer(GL_NONE);
+   glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //generate the VAO
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
     //float g_groundSize = gridDistanceFromCenter;
     //float g_groundY = gridHeight;
-    
+
     // A x-z plane at y = g_groundY of dim[-g_groundSize, g_groundSize]^2
     /*float GroundPos[] = {
         -g_groundSize, g_groundY, -g_groundSize,
@@ -402,9 +569,9 @@ void Application::initQuad()
         g_groundSize, g_groundY,  g_groundSize,
         g_groundSize, g_groundY, -g_groundSize
     };*/
-   
+
     GLfloat *GroundPos = new GLfloat[10000*18];
-    
+
     int verc = 0;
     for (int i = 0; i < 100; i++){
         for(int j = 0; j < 100; j++){
@@ -416,7 +583,7 @@ void Application::initQuad()
             GroundPos[verc++] = 0.0 + j, GroundPos[verc++] = 1.0 + i, GroundPos[verc++] = 0.0;
         }
     }
-   
+
     float GroundNorm[] = {
         0, 1, 0,
         0, 1, 0,
@@ -425,7 +592,7 @@ void Application::initQuad()
         0, 1, 0,
         0, 1, 0
     };
-    
+
     /*
      float GroundTex[] = {
      0, 0, // back
@@ -433,15 +600,15 @@ void Application::initQuad()
      1, 1,
      1, 0
      }; */
-    
-    
+
+
     /*float GroundTex[] = {
         0, 0, // back
         0, g_groundSize,
         g_groundSize, g_groundSize,
         g_groundSize, 0
     };*/
-   
+
 
     float t= 1./100.;
     int texc = 0;
@@ -456,24 +623,24 @@ void Application::initQuad()
             GroundTex[texc++] = (GLfloat)j*t, GroundTex[texc++] = (GLfloat)(i + 1)*t;
         }
     }
-   
+
     unsigned short idx[] = {0, 1, 2, 0, 2, 3};
-    
+
     gGiboLen = 6;
-    
+
     glGenBuffers(1, &GroundBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, GroundBufferObject);
     //glBufferData(GL_ARRAY_BUFFER, sizeof(GroundPos), GroundPos, GL_STATIC_DRAW);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*10000*18, GroundPos, GL_STATIC_DRAW);
-    
+
     glGenBuffers(1, &GroundTextureBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, GroundTextureBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*10000*12, GroundTex, GL_STATIC_DRAW);
-    
+
     glGenBuffers(1, &GroundNormalBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, GroundNormalBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GroundNorm), GroundNorm, GL_STATIC_DRAW);
-    
+
     glGenBuffers(1, &GroundIndexBufferObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GroundIndexBufferObject);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
@@ -484,20 +651,20 @@ void Application::renderGround()
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, GroundBufferObject);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    
+
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, GroundNormalBufferObject);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    
+
     glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, GroundTextureBufferObject);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    
+
     // draw!
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GroundIndexBufferObject);
     //glDrawElements(GL_TRIANGLES, gGiboLen, GL_UNSIGNED_SHORT, 0);
     glDrawArrays(GL_TRIANGLES, 0, 10000*12);
-    
+
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
@@ -616,7 +783,7 @@ bool Application::loadCubeMapSide(GLuint texture, GLenum side_target,
 		&n, force);
 
 	if (!imageData) {
-		fprintf(stderr, "ERROR: could not load %s\n", filename.c_str());	
+		fprintf(stderr, "ERROR: could not load %s\n", filename.c_str());
 		return false;
 	}
 
@@ -634,16 +801,16 @@ bool Application::loadCubeMapSide(GLuint texture, GLenum side_target,
 }
 
 void Application::integrate(float t, float dt) {
-	//previousState = make_shared<State>( *currentState );    
+	//previousState = make_shared<State>( *currentState );
 	int32 velocityIterations = 6;
 	int32 positionIterations = 2;
 
     world->Step(dt, velocityIterations, positionIterations);
-    
+
     if(player->health <= 0) {
         gameLost();
     }
-    
+
     if(gameOver) {
         if(player->scale > 0.21f * dt) {
             player->scale -= 0.2f * dt;
@@ -667,26 +834,26 @@ void Application::renderState(State& state) {
     int windowWidth, windowHeight;
     glfwGetFramebufferSize(windowManager->getHandle(), &windowWidth, &windowHeight);
     glViewport(0, 0, windowWidth, windowHeight);
-    
+
     float aspect = windowWidth/(float)windowHeight;
     shared_ptr<MatrixStack> M;
-    
+
     CHECKED_GL_CALL( glBindFramebuffer(GL_FRAMEBUFFER, 0) );
     CHECKED_GL_CALL( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
     CHECKED_GL_CALL( glDisable(GL_CULL_FACE) ) ; //default, two-sided rendering
-    
+
     mainProgram->bind();
-    
+
         camera->setModelIdentityMatrix(mainProgram);
         camera->setHelicopterViewMatrix(mainProgram);
         camera->setProjectionMatrix(mainProgram, aspect);
-    
+
         camera->setEyePosition(mainProgram);
-    
+
         vec3 directionFromLight = vec3(0.0f) - vec3(-5.0f, 20.0f, 10.0f); //from X to origin
         vec3 directionTowardsLight = -directionFromLight;
         CHECKED_GL_CALL( glUniform3f(mainProgram->getUniform("directionTowardsLight"), directionTowardsLight.x, directionTowardsLight.y, directionTowardsLight.z) );
-    
+
 		/* PRIMARY RENDER LOOP */
         for(auto& gameObject : state.gameObjects) {
 			if (gameObject->enabled) {
@@ -707,9 +874,9 @@ void Application::renderState(State& state) {
                 M->popMatrix();
             }
         M->popMatrix();
-    
+
     mainProgram->unbind();
-    
+
     groundProgram->bind();
         camera->setModelIdentityMatrix(groundProgram);
         camera->setHelicopterViewMatrix(groundProgram);
@@ -726,12 +893,12 @@ void Application::renderState(State& state) {
 			M->loadIdentity();
 			//M->translate(glm::vec3(0.0f, 0.0f, 0.0f));
 			//M->translate(glm::vec3(player->position.x+20.0f, 0.0f, 0.0f));
-    
-			M->translate(glm::vec3(player->position.x-40.0f, -10.0f, -20.0f));
+
+			M->translate(glm::vec3(player->position.x-40.0f, -4.30f, -20.0f));
 			M->scale(glm::vec3(1.0f, 1.0f, 1.0f));
 			M->rotate(1.5, glm::vec3(1.0f, 0.0f, 0.0f));
 			//M->scale(glm::vec3(15.0f, 15.0f, 15.0f));
-    
+
 			CHECKED_GL_CALL(glUniformMatrix4fv(groundProgram->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix())));
 		M->popMatrix();
 		/*draw the ground */
@@ -739,7 +906,53 @@ void Application::renderState(State& state) {
 		normalTexture->bind(groundProgram->getUniform("normal"));
 		renderGround();
     groundProgram->unbind();
-    
+	 /*do shadows*/
+	 if (SHOW_LIGHT_COLOR)
+                {
+                        // geometry style debug on light - test transforms, draw geometry from light
+                        // perspective
+                        DepthProgDebug->bind();
+                        // render scene from light's point of view
+                        SetOrthoMatrix(DepthProgDebug);
+                        SetLightView(DepthProgDebug, g_light, vec3(0, 0, 0), vec3(0, 1, 0));
+                        //drawScene(DepthProgDebug, DepthProgDebug->getUniform("Texture0"), 1);
+                        DepthProgDebug->unbind();
+                }
+                else if (SHOW_LIGHT_DEPTH)
+                {
+                        /* code to draw the light depth buffer */
+                        // actually draw the light depth map
+                        DebugProg->bind();
+                        CHECKED_GL_CALL(glActiveTexture(GL_TEXTURE0));
+                        CHECKED_GL_CALL(glBindTexture(GL_TEXTURE_2D, ShadowMapDepthTexture));
+                        CHECKED_GL_CALL(glUniform1i(DebugProg->getUniform("texBuf"), 0));
+                        CHECKED_GL_CALL(glBindVertexArray(QuadVertexArray));
+                        CHECKED_GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
+                        DebugProg->unbind();
+                }
+                else
+                {
+	 				 			mat4 L = render_ShadowMap();
+	 			 				ShadowProg->bind();
+
+                        /* TODO: also set up light depth map */
+
+
+                        CHECKED_GL_CALL(glUniform3f(ShadowProg->getUniform("lightDir"), g_light.x, g_light.y, g_light.z));
+
+                        // view/proj matrices
+                        SetShadowProjectionMatrix(ShadowProg);
+                        SetView(ShadowProg);
+
+                        // TODO: is there other uniform data that must be sent?
+                        CHECKED_GL_CALL(glActiveTexture(GL_TEXTURE1));
+                        CHECKED_GL_CALL(glBindTexture(GL_TEXTURE_2D, ShadowMapDepthTexture));
+                        CHECKED_GL_CALL(glUniform1i(ShadowProg->getUniform("shadowDepth"),1));
+                        glUniformMatrix4fv(ShadowProg->getUniform("LS"), 1, GL_FALSE, value_ptr(L));
+
+                        //drawScene(ShadowProg, ShadowProg->getUniform("Texture0"), 1);
+                        ShadowProg->unbind();
+						}
 	/*draw skybox*/
 	glDepthMask(GL_FALSE);
 	sky->bind();
@@ -760,7 +973,7 @@ void Application::SetMaterial(const std::shared_ptr<Program> prog, int i)
 {
     CHECKED_GL_CALL( glUniform3f(prog->getUniform("mSpecularCoefficient"), 0.3f, 0.2f, 0.1f) );
     CHECKED_GL_CALL( glUniform1f(prog->getUniform("mSpecularAlpha"), 3.0f) );
-    
+
     switch (i)
     {
         case 0: //shiny blue plastic
@@ -811,16 +1024,16 @@ float Application::randomFloatNegativePossible() {
 void Application::initGUI() {
 	shared_ptr<DefaultInputComponent> input = make_shared<DefaultInputComponent>();
 	inputComponents.push_back(input);
-	
+
 	shared_ptr<DefaultPhysicsComponent> physics = make_shared<DefaultPhysicsComponent>();
 	physicsComponents.push_back(physics);
-	
+
 	shared_ptr<DefaultGraphicsComponent> graphics = make_shared<DefaultGraphicsComponent>();
 	graphicsComponents.push_back(graphics);
 	graphics->models.push_back(helicopterModel); //Give this graphics component model
 	graphics->material = 7;
 	//Todo: Give constructor to graphics for models.
-	
+
 	for (int i = 0; i < 5; i++) {
 		temporaryGameObjectPointer = make_shared<GameObject>(input, physics, graphics);
 		temporaryGameObjectPointer->position = vec3(-12 + (i * 5), -20, 0);
@@ -837,7 +1050,7 @@ void Application::moveGUIElements() {
             copterHealthObjs[i]->scale = 0.5f;
             copterHealthObjs[i]->rotation.y += 1.0f;
         }
-        
+
         copterHealthObjs[i]->position = vec3((player->position.x) - 1 + (3 * i), -4.0f, player->position.z+8);
 		//copterHealthObjs[i]->position = vec3((player->position.x - 12) + (5 * i), player->position.y - 20 - (float)(i / 2.5), player->position.z);
 		//copterHealthObjs[i]->scale = 0.6f;
@@ -927,6 +1140,14 @@ void Application::keyCallback(GLFWwindow *window, int key, int scancode, int act
 	else if (key == GLFW_KEY_S && (action == GLFW_RELEASE))
 	{
 		playerInputComponent->movingDownward = false;
+	}
+	else if(key == GLFW_KEY_K)
+	{
+		SHOW_LIGHT_COLOR = (action != GLFW_RELEASE);
+	}
+	else if(key == GLFW_KEY_L)
+	{
+		SHOW_LIGHT_DEPTH = (action != GLFW_RELEASE);
 	}
     else if (key == GLFW_KEY_SPACE && (action == GLFW_RELEASE))
     {
